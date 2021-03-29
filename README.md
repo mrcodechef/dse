@@ -34,7 +34,7 @@ Ubuntu 20.04 Desktop or Server
     $ cd dse/src
     $ npm install
     
-## Run Analysis
+## Run Concolic Analysis
     $ ./horcrux-mahimahi.sh <start index for websites> <end index for websites>
     $ ./stat.sh 
     
