@@ -29,7 +29,7 @@ Ubuntu 20.04 Desktop or Server
     $ venv/bin/pip install -e ".[dev]"
     $ echo ". $(pwd)/venv/bin/activate" >> ~/.bashrc
 
-#### Manual Setup: Installation
+#### Manual Setup: Our Software Installation
     $ git clone https://github.com/ihjkoh/dse
     $ cd dse/src
     $ npm install
