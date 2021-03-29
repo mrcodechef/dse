@@ -1,6 +1,6 @@
-# Webpage Concolic Execution
-## (i.e., Concrete + Symbolic Execution)
-Concolic Execution of Javascript Webpages
+# Concolic Execution of Javascript Webpages
+
+
 
 ### Platform
 Ubuntu 20.04 Desktop or Server
