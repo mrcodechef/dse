@@ -1,0 +1,41 @@
+{
+  "dependencies": {
+    "@babel/plugin-transform-function-name": "^7.12.13",
+    "acorn": "^3.3.0",
+    "argparse": "^1.0.10",
+    "dayjs": "^1.9.6",
+    "esotope": "^1.4.5",
+    "module": "^1.2.5",
+    "path": "^0.12.7",
+    "puppeteer": "^1.20.0",
+    "puppeteer-har": "^1.1.2",
+    "tough-cookie": "^4.0.0",
+    "uuid": "^8.3.1"
+  },
+  "name": "puppeteer",
+  "version": "1.0.0",
+  "scripts": {
+    "init-template": "node template.js --init-template=init-template2.js --output=init-template-final.js",
+    "init-template:watch": "nodemon -L -x npm run init-template --config ./config-nodemon-template.json",
+    "start-browser": "node har https://qq.com init-template-final.js 8182",
+    "start-browser:headfull": "npx cross-env HAR_CHROME_HEADFULL=1 npm run start-browser",
+    "start-browser:watch": "nodemon -L -x npm run start-browser --config ./config-nodemon-browser.json",
+    "start-browser:headfull:watch": "nodemon -x npm run start-browser:headfull --config ./config-nodemon-browser.json",
+    "start-proxy:watch": "nodemon -L -x ./startProxy.sh -w esnstrument.js 8182"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@babel/core": "^7.12.13",
+    "@babel/plugin-transform-runtime": "^7.12.15",
+    "@babel/preset-env": "^7.12.13",
+    "babel-plugin-transform-es2015-modules-simple-commonjs": "^0.3.0",
+    "babelify": "^10.0.0",
+    "browserify": "^17.0.0",
+    "cross-env": "^7.0.3",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^7.0.1",
+    "nodemon": "^2.0.7"
+  }
+}
