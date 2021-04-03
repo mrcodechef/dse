@@ -53,7 +53,7 @@ Then, visit https://github.com/settings/keys
     $ ssh -T git@github.com # check if your key is added to your Github.com account
 
 
-#### Manual Local Setup: Install ExpoSE (to run SMT solver on Javascript)
+#### Manual Local Setup: Install ExpoSE (to run the SMT solver in Javascript)
     $ cd ~
     $ git clone https://github.com/ExpoSEJS/ExpoSE
     $ cd expoSE
