@@ -53,13 +53,13 @@ https://www.freecodecamp.org/news/git-ssh-how-to/
     $ ssh-add ~/.ssh/id_rsa   # add your key to the ssh-agent
     $ cat ~/.ssh/id_rsa.pub   # print your key
 
-###### * Then, visit https://github.com/settings/keys 
+> Then, visit https://github.com/settings/keys 
 
-###### * click "New SSH Key" 
+> click "New SSH Key" 
 
-###### * Paste the contents of id_ras.pub 
+> Paste the contents of id_ras.pub 
 
-###### * click "Add SSH Key"
+> click "Add SSH Key"
 
     $ ssh -T git@github.com   # check if your key is added to your Github.com account
 
