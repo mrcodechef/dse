@@ -69,6 +69,9 @@ Then, visit https://github.com/settings/keys
     $ cd dse/src
     $ npm install
     
+#### Manual Local Setup: Copy the mahimahi database folder
+Place the top-level mahimahi database folder in the `dse` directory
+    
 ## Run Webpage Concolic Analysis
     $ ./horcrux-mahimahi.sh <start index for websites> <end index for websites>
     $ ./stat.sh 
