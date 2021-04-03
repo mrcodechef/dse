@@ -8,7 +8,8 @@
 Ubuntu 20.04 Desktop or Server
 
 #### Manual Local Setup: Install Mahimahi  (To simulate web servers)
-    $ sudo apt-get install -y protobuf-compiler apache2-dev ssl-cert libprotobuf-dev xcb-proto xcb libx11-xcb-dev libxcb-present-dev libsdl-pango-dev pkg-config
+    $ sudo apt-get install -y protobuf-compiler apache2-dev ssl-cert libprotobuf-dev \
+      xcb-proto xcb libx11-xcb-dev libxcb-present-dev libsdl-pango-dev pkg-config
 
     $ sudo make-ssl-cert generate-default-snakeoil
     $ sudo usermod --append --groups ssl-cert yyuu
@@ -42,15 +43,15 @@ Ubuntu 20.04 Desktop or Server
 #### Manual Local Setup: Setup Github SSH Keys (to install Z3JavaScript)
 https://www.freecodecamp.org/news/git-ssh-how-to/
     $ mkdir $HOME/.ssh # if not exists
-    $ ssh-keygen -t rsa -b 4096 -C <your github.com email address> # create your key
-    $ eval "$(ssh-agent -s)" # check if ssh-agent is running
-    $ ssh-add ~/.ssh/id_rsa # add your key to the ssh-agent
-    $ cat ~/.ssh/id_rsa.pub # print your key
+    $ ssh-keygen -t rsa -b 4096 -C <your github.com email address>   # create your key
+    $ eval "$(ssh-agent -s)"   # check if ssh-agent is running
+    $ ssh-add ~/.ssh/id_rsa   # add your key to the ssh-agent
+    $ cat ~/.ssh/id_rsa.pub   # print your key
 Then, visit https://github.com/settings/keys 
 -> click "New SSH Key" 
 -> Paste the contents of id_ras.pub 
 -> click "Add SSH Key"
-    $ ssh -T git@github.com # check if your key is added to your Github.com account
+    $ ssh -T git@github.com   # check if your key is added to your Github.com account
 
 
 #### Manual Local Setup: Install ExpoSE (to run the SMT solver in Javascript)
