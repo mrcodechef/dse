@@ -39,6 +39,9 @@ Ubuntu 20.04 Desktop or Server
     $ nvm ls-remote
     $ nvm install 15.4.0
     $ nvm install 10.23.0
+    $ nvm alias default 15.4.0
+    $ echo "nvm use 15.4.0" >> ~/.bashrc
+    $ nvm use 15.4.0
 
 
 #### Manual Local Setup: Setup Github SSH Keys (to install Z3JavaScript)
