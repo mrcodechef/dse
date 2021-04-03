@@ -108,11 +108,11 @@ if (typeof JALANGI_$ === 'undefined') {
   }
 
   function updateSid(f) {
-//console.log("Push SID: " + sandbox.sid);
-//console.log(f);
+//safe_print("Push SID: " + sandbox.sid);
+//safe_print(f);
     origin_array_push.call(sidStack, sandbox.sid);
     sandbox.sid = getPropSafe(f, SPECIAL_PROP_SID);
-//console.log("New SID: " + sandbox.sid);
+//safe_print("New SID: " + sandbox.sid);
   }
 
 
@@ -167,7 +167,11 @@ if (typeof JALANGI_$ === 'undefined') {
   }
 
   function invokeEval(base, f, args, iid) {
-    return f(sandbox.instrumentEvalCode(args[0], iid, false));
+/* TO DO : Handle eval() instrumentation */
+//    return f(sandbox.instrumentEvalCode(args[0], iid, false));
+safe_print("Will Not Instrument");
+safe_print(args[0])
+    return f(args[0]);
   }
 
   function invokeFunctionDecl(base, f, args, iid) {
@@ -179,7 +183,10 @@ if (typeof JALANGI_$ === 'undefined') {
       newArgs[i] = args[i];
     }
     var code = '(function(' + origin_array_join.call(newArgs, ', ') + ') { ' + args[args.length - 1] + ' })';
-    var code = sandbox.instrumentEvalCode(code, iid, false);
+/* TO DO : Handle eval() instrumentation */
+safe_print("Will Not Instrument");
+safe_print(code)
+//    var code = sandbox.instrumentEvalCode(code, iid, false);
     // Using EVAL_ORG instead of eval() is important as it preserves the scoping semantics of Function()
     var out = EVAL_ORG(code);
     return out;
@@ -202,11 +209,11 @@ if (typeof JALANGI_$ === 'undefined') {
         result = callAsConstructor(f, args);
       } else {
         /*if (new Error().stack.length > 10000)
-        {console.log("Will call function");
-        console.log(f);
-        console.log(base);
+        {safe_print("Will call function");
+        safe_print(f);
+        safe_print(base);
         }*/
-//console.log(origin_fn_apply)
+//safe_print(origin_fn_apply)
         result = origin_fn_apply.call(f, base, args);
         //result = Function.prototype.apply(f, base, args);
       }
@@ -441,9 +448,9 @@ if (typeof JALANGI_$ === 'undefined') {
       aret = sandbox.analysis.read(iid, name, val, bFlags[0], bFlags[1], base);
       // if (typeof window != 'undefined' && val === Date) {
       //     PrintInfo(iid, "endExpression()", line);
-      //     console.log("JALANGI_READ " + this.count + ": Date.now (new Date())");
+      //     safe_print("JALANGI_READ " + this.count + ": Date.now (new Date())");
       //     Error.stackTraceLimit = 1000;
-      //     { var err = new Error(); console.log(err.stack); }
+      //     { var err = new Error(); safe_print(err.stack); }
       // }
 
       if (aret) {

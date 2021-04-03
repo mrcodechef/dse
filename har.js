@@ -73,10 +73,10 @@ var chromeArg = [
 ];
 
 //if (!envArgs.isChromeHeadFull) {
-	chromeArg.push('--headless')
+//	chromeArg.push('--headless')
 //}
 //else
-//	chromeArg.push('-auto-open-devtools-for-tabs')
+	chromeArg.push('-auto-open-devtools-for-tabs')
 
 if (args.length == 9)
   chromeArg.push('--proxy-server=' + (args[8].includes(':') ? args[8] : '127.0.0.1:' + args[8]));
@@ -371,9 +371,9 @@ console.log("Add Node by eval() 4 !!!!!!!!!!!!!!!!!");
     var loadTime = (parseInt((timing["loadEventEnd"]) - parseInt(timing["navigationStart"])) / 1000.0);
 //console.log(timing["loadEventEnd"]);
 //console.log(timing["navigationStart"]);
-   console.log("Har Stop"); 
+//   console.log("Har Stop"); 
     await log(`- Load Time: ${loadTime.toString()} s`);
-   console.log("Har Stop 2"); 
+//   console.log("Har Stop 2"); 
 //console.log(pref)
 //await page._client.send('Performance.enable');
 //const response = await page._client.send('Performance.getMetrics');

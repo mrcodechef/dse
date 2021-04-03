@@ -4,7 +4,7 @@ const files = [
   'Config.js',
   'Constants.js',
   'astUtil.js',
-//  'esnstrument-browser.js', //  COMMENT OUT FOR DEBUGGING
+  'esnstrument-browser.js', //  COMMENT OUT FOR DEBUGGING
   'iidToLocation.js',
 // 'instUtil.js',
   'analysis.js',

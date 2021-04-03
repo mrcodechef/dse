@@ -34,12 +34,11 @@ sleep 0.5
 # ls -1f | grep -Z '^esnstrument-browser.js.tmp*' | xargs rm
 
 # <COMMENT OUT FOR DEBUGGING>
-#if [ ! -f esnstrument-browser.js ] || [ esnstrument-browser.js -ot esnstrument.js  ]; then
+if [ ! -f esnstrument-browser.js ] || [ esnstrument-browser.js -ot esnstrument.js  ]; then
 	echo "Creating esnstrument-browser.js..."
-#	rm -f esnstrument-browser*
-#cp esnstrument.js esnstrument-browser.js
+	rm -f esnstrument-browser*
 	node node_modules/browserify/bin/cmd.js esnstrument.js -o esnstrument-browser.js && echo "browserify: 'esnstrument-browser.js' created"
-#	node node_modules/browserify/bin/cmd.js esnstrument.js -o esnstrument-browser.js -t [ babelify --presets [ @babel/preset-env ]  && echo "browserify: 'esnstrument-browser.js' created"
-#fi
+	#browserify esnstrument.js -o esnstrument-browser.js -t [ babelify --presets [ @babel/preset-env ]  && echo "browserify: 'esnstrument-browser.js' created"
+fi
 
 mitmdump --ssl-insecure -p $1 -s proxy2.py --set block_global=false # args="--inlineIID --inlineSource --analysis UniqueLines.js" --ignore-hosts ^localhost

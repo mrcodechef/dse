@@ -75,7 +75,7 @@ ANALYSIS_JS = FILE_DIR + "/analysis.js"
 SYMBOL_LIST = ["document.cookie", "screen.width", "screen.height", "screen.availWidth", "screen.availHeight", "screen.colorDepth", "screen.pixelDepth", "navigator.userAgent", "navigator.platform", "document.referrer", "document.lastModified", "Math.random", "crypto.getRandomValues", "Date.now", "new Date()", "document.documentElement.offsetWidth", "document.documentElement.offsetHeight", "document.documentElement.offsetLeft", "document.documentElement.offsetTop", "document.documentElement.scrollWidth", "document.documentElement.scrollHeight", "document.documentElement.scrollLeft", "document.documentElement.scrollTop", "document.documentElement.clientWidth", "document.documentElement.clientHeight", "document.documentElement.clientLeft", "document.documentElement.clientTop", "document.body.offsetWidth", "document.body.offsetHeight", "document.body.offsetLeft", "document.body.offsetTop", "document.body.scrollWidth", "document.body.scrollHeight", "document.body.scrollLeft", "document.body.scrollTop", "document.body.clientWidth", "document.body.clientHeight", "document.body.clientLeft", "document.body.clientTop"]
 
 module_list = []
-
+ESNSTRUMET_BROWSER_JS_STR = ''
 with open(CONFIG_JS,'r') as file:
 	CONFIG_JS_STR = file.read()
 with open(CONSTANTS_JS,'r') as file:
@@ -84,8 +84,8 @@ with open(ASTUTIL_JS,'r') as file:
 	ASTUTIL_JS_STR = file.read()
 with open(INSTUTIL_JS,'r') as file:
 	INSTUTIL_JS_STR = file.read()
-with open(ESNSTRUMENT_JS,'r') as file:
-	ESNSTRUMENT_JS_STR = file.read()
+#with open(ESNSTRUMENT_JS,'r') as file:
+#	ESNSTRUMENT_JS_STR = file.read()
 with open(ESNSTRUMENT_BROWSER_JS,'r') as file:
 	ESNSTRUMENT_BROWSER_JS_STR = file.read()
 with open(IIDTOLOCATION_JS,'r') as file:
@@ -94,7 +94,7 @@ with open(ANALYSIS_JS,'r') as file:
 	ANALYSIS_JS_STR = file.read()
 with open(ANALYSIS_SCRIPT,'r') as file:
 	ANALYSIS_SCRIPT_STR = file.read()
-ESNSTRUMENT_BROWSER_JS_STR = ''
+
 #def start():
 #	print('Jalangi home is ' + JALANGI_HOME)
 #	print('Current working directory is ' + WORKING_DIR)
@@ -484,7 +484,7 @@ def response(flow):
 
 				#new_script_tag.string = CONFIG_JS_STR + CONSTANTS_JS_STR + ASTUTIL_JS_STR + IIDTOLOCATION_JS_STR + ANALYSIS_JS_STR + ANALYSIS_SCRIPT_STR
 				#new_script_tag.string = CONSTANTS_JS_STR + IIDTOLOCATION_JS_STR + ANALYSIS_JS_STR + ANALYSIS_SCRIPT_STR
-				new_script_tag.string = ' if (typeof J$ == "undefined") { ' + new_script_tag.string + '}'
+				new_script_tag.string = ' if (typeof JALANGI_$ == "undefined") { ' + new_script_tag.string + '}'
 				#print(str(soup.html))
 				if soup.html == None:
 					return

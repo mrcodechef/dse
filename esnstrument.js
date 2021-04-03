@@ -36,7 +36,7 @@ if (typeof window !== 'undefined')
 
 //if (typeof window !== 'undefined')
 //{ 
-	 var lodash = require('lodash');
+	 var lodash_esnstrument = require('lodash');
 //}
 
 
@@ -46,7 +46,7 @@ var log_filename;// = (new origin_Date()).getTime();
 function log (arg) {
   //safe_print('esnstrument.js log: '+ arg);
   if (typeof window === 'undefined') {
-    fs.appendFileSync('logs/server/' + log_filename + '.txt', origin_obj_toString(arg));
+//    fs_esnstrument.appendFileSync('logs/server/' + log_filename + '.txt', origin_obj_toString(arg));
   }
 }
 
@@ -59,8 +59,8 @@ var babel_final = (typeof babel !== 'undefined' ? babel : babel_browser);
 
 if (typeof window === 'undefined') {
   //var browserify_string = require('browserify-string');
-  var browserify = require('browserify');
-  var fs = require('fs');
+//  var browserify = require('browserify');
+  var fs_esnstrument = require('fs');
 }
 
 //var StatCollector = require('../utils/StatCollector');
@@ -83,16 +83,15 @@ if (typeof JALANGI_$ === 'undefined') {
         compact: false,
         sourceType: 'unambiguous',
         sourceMaps: true,
-//        presets: [ ['@babel/preset-env', 
-//							{ "exclude": ["@babel/plugin-transform-function-name"] }
-//						] ],
-			presets: ['@babel/preset-env' ],
+        presets: [ ['@babel/preset-env', 
+							{ "exclude": ["@babel/plugin-transform-function-name"] }
+						] ],
         plugins: [
           //"@babel/plugin-transform-runtime",
           // ["@babel/plugin-transform-modules-commonjs",
           //     { 'strictMode': false },
           // ],
-          ["transform-es2015-modules-simple-commonjs",
+          ["transform-es2015-modules-commonjs-simple",
             {
               'noMangle': true,
               'allowTopLevelThis': true,
@@ -102,7 +101,7 @@ if (typeof JALANGI_$ === 'undefined') {
         ]//,
 			//exclude: ['plugin-transform-function-name']
       }
- 
+      
       try {
         safe_print("babel.transform()...");
         
@@ -2772,7 +2771,7 @@ safe_print("Wrap Script Body");
 //safe_print("Hoist 2 : " + ast.body[i].declarations);
 //safe_print(ast.body[i].declarations);
 				var isVarDeclaration = false;
-				var cloned = lodash.cloneDeep(ast.body[i]);
+				var cloned = lodash_esnstrument.cloneDeep(ast.body[i]);
 				 for (let child_key in cloned.declarations) {
 					let child = cloned.declarations[child_key];
 //	safe_print(child);
@@ -3177,10 +3176,10 @@ class Node {};
 
 			var target_array = [];
 			if (cur_node.object.type === 'SequenceExpression')
-				target_array = lodash.cloneDeep(cur_node.object.expressions);
+				target_array = lodash_esnstrument.cloneDeep(cur_node.object.expressions);
 			//else if (cur_node.object.type === 'Identifier' || cur_node.object.type === 'MemberExpression')
 			else
-				origin_array_push.call(target_array, lodash.cloneDeep(cur_node.object));
+				origin_array_push.call(target_array, lodash_esnstrument.cloneDeep(cur_node.object));
 //			else
 //			{	safe_print("ERROR: Unknown expression type: " + cur_node.object.type);
 //				return;
@@ -3463,10 +3462,7 @@ class Node {};
   
   
   function instrumentEvalCode(code, iid, isDirect) {
-safe_print(code); 
 safe_print("Will Not Instrument");
-	return code;
-///*  TO DO: Make eval() work by modifying the source code of Jalangi's modules used for instruemntCode to use native origin_* functions. 
     return instrumentCode({
       code: code,
       thisIid: iid,
