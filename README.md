@@ -46,6 +46,7 @@ Ubuntu 20.04 Desktop or Server
 
 #### Manual Local Setup: Setup Github SSH Keys (to install Z3JavaScript)
 https://www.freecodecamp.org/news/git-ssh-how-to/
+
     $ mkdir $HOME/.ssh # if not exists
     $ ssh-keygen -t rsa -b 4096 -C <your github.com email address>   # create your key
     $ eval "$(ssh-agent -s)"   # check if ssh-agent is running
