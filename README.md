@@ -29,6 +29,7 @@ Ubuntu 20.04 Desktop or Server
     $ python3 -m venv venv
     $ venv/bin/pip install -e ".[dev]"
     $ echo ". $(pwd)/venv/bin/activate" >> ~/.bashrc
+    $ pip3 install bs4 jsbeautifier
 
 
 #### Manual Local Setup: Install Node 10.23.0 & 15.4.0 (to run ExpoSE & Puppeteer with Jalangi)
