@@ -73,10 +73,10 @@ var chromeArg = [
 ];
 
 //if (!envArgs.isChromeHeadFull) {
-//	chromeArg.push('--headless')
+	chromeArg.push('--headless')
 //}
 //else
-	chromeArg.push('-auto-open-devtools-for-tabs')
+//	chromeArg.push('-auto-open-devtools-for-tabs')
 
 if (args.length == 9)
   chromeArg.push('--proxy-server=' + (args[8].includes(':') ? args[8] : '127.0.0.1:' + args[8]));

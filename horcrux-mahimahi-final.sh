@@ -22,6 +22,8 @@ CPU_COUNT=$(grep -c ^processor /proc/cpuinfo)
 #"crypto_getRandomValues"
 
 symbol_list=(
+"Math_random"
+)
 "navigator_userAgent"
 "navigator_platform"
 "document_cookie"
@@ -58,8 +60,6 @@ symbol_list=(
 "document_body_clientHeight"
 "document_body_clientLeft"
 "document_body_clientTop"
-"Math_random"
-)
 
 
 screen_width=(
@@ -535,8 +535,8 @@ cd $CHROME_RESULT_DIR
 
 
 
-#echo "Creating esnstrument-browser.js..."
-#node node_modules/browserify/bin/cmd.js esnstrument.js -o esnstrument-browser.js && echo "browserify: 'esnstrument-browser.js' created"
+echo "Creating esnstrument-browser.js..."
+node node_modules/browserify/bin/cmd.js esnstrument.js -o esnstrument-browser.js && echo "browserify: 'esnstrument-browser.js' created"
 
 
 count=0
@@ -585,7 +585,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 
 	
 	cd $CHROME_RESULT_DIR
-	rm -f $CHROME_RESULT_DIR/LOG-*.txt $CHROME_RESULT_DIR/all_symbols.txt $CHROME_RESULT_DIR/final_symbols.txt out*
+	rm -f $CHROME_RESULT_DIR/LOG-*.txt $CHROME_RESULT_DIR/symbol_assignment-*.js  $CHROME_RESULT_DIR/all_symbols.txt $CHROME_RESULT_DIR/final_symbols.txt out*
 	#mkdir $temp 2> /dev/null
 	fuser -k $NGHTTP2_PORT/tcp
 	killall mitmdump 2> /dev/null
@@ -949,9 +949,26 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 
 	path_count=$(ls LOG-*.txt | wc -l)
 	
+   symbols="$(cat final_symbols.txt)"
+
 	echo "- Found Paths: $path_count"
 	echo
-	mv LOG-*.txt all_symbols.txt final_symbols.txt $CHROME_RESULT_DIR/path-results/$mahimahi_path/
+
+   i=0
+   while read symbol_value; do
+      symbol="$(echo "$symbol_value" | awk -F'=' '{print $1}')"
+      replaced_symbol="$(echo "$symbol" | sed 's/\./_/g' | sed 's/ //g')"
+      replaced_symbol_value="$(echo "$symbol_value" | sed "s/$symbol/$replaced_symbol/g" | sed 's/\//\\\//g' )"
+
+      #sed "s/var ${replaced_symbol} =.*/var ${replaced_symbol_value}/g" init-template.js > "$folder/symbol_assignment_$replaced_symbol-$i.js"
+      sed "s/var ${replaced_symbol} =.*/var ${replaced_symbol_value}/g" symbols_default.js > "symbol_assignment-$i.js"
+      i=$((i + 1))
+   done <<< "$symbols"
+   log_count=$(ls $folder | grep LOG | wc -l)
+
+	rm LOG-*.txt all_symbols.txt final_symbols.txt 
+	mv symbol_assignment-*.js $CHROME_RESULT_DIR/path-results/$mahimahi_path/
+
 
 	if [ "$isForced" == "yes" ] && [ $# -ne 0 ] ; then
 		break
