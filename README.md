@@ -68,7 +68,12 @@ Then, visit https://github.com/settings/keys
     $ cd ~
     $ git clone https://github.com/ihjkoh/dse
     $ cd dse/src
+    $ npm install puppeteer puppeteer-har fs fs-extra module path acorn argparse@1.0.10 esotope @babel/core @babel/plugin-transform-runtime uuid dayjs tough-cookie babel-plugin-transform-es2015-modules-commonjs-simple install babel-preset-es2017 babel-preset-es2015 lodash browserify @babel/plugin-transform-function-name
+    $ npm init
+    $ npx babel-upgrade --write
     $ npm install
+    $ echo "export PUPPETEER_EXECUTABLE_PATH='/usr/bin/chromium-browser'" >> ~/.bashrc
+    $ source ~/.bashrc
     
 #### Manual Local Setup: Copy the mahimahi database folder
 Place the top-level mahimahi database folder in the `dse` directory
