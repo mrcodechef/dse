@@ -60,11 +60,11 @@ echo "console.log('JALANGI_FINAL_COOKIE: ' + document.cookie);" > end-inject.js
 echo "$(date +%s.%N)" > $cache_folder/begin
 
 if [ "$proto" != "" ]; then 
-   node har --url $1 --start-inject-js $2 --end-inject-js end-inject.js --proxy-address $5 > $outfile
+   HEADLESS=1 node har --url $1 --start-inject-js $2 --end-inject-js end-inject.js --proxy-address $5 > $outfile
 	#./har-analyze.sh $1 8182 >  $3
 	#node har $1 $2 8182 > out #| tee -a out
 else
-   node har --url https://$1 --start-inject-js $2 --end-inject-js end-inject.js --proxy-address $5 > $outfile
+   HEADLESS=1 node har --url https://$1 --start-inject-js $2 --end-inject-js end-inject.js --proxy-address $5 > $outfile
 	#./har-analyze.sh https://$1 8182 > $3
 	#node har https://$1 $2 8182 > out # | tee -a out
 #./har.sh $1 8181
