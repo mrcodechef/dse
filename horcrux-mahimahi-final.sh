@@ -23,7 +23,6 @@ CPU_COUNT=$(grep -c ^processor /proc/cpuinfo)
 
 symbol_list=(
 "Math_random"
-)
 "navigator_userAgent"
 "navigator_platform"
 "document_cookie"
@@ -60,6 +59,8 @@ symbol_list=(
 "document_body_clientHeight"
 "document_body_clientLeft"
 "document_body_clientTop"
+
+)
 
 
 screen_width=(
@@ -469,32 +470,111 @@ function RecordWebpage() {
 
 }
 
-function postProcess() {
+function ExecutePageload() {
+
+	local website=$1
+	local mahimahi_path=$2
+	local k=$3
+	touch cache$k/lock-pageload
+	USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay $mahimahi_path ./proxy-pageload.sh symbol_assign-expose-$input_started_count.js out$k cache$k $MITMPROXY_PORT "reuseCache" &
+	input_started_count=$((input_started_count + 1))
+
+}
+
+function ExecuteExpoSE() {
+	local k=$1	
+	result="$(head -1 pc-list-queue | awk '{print $1}')"
+	one_pc="$(head -1 pc-list-queue | awk '{print $2}')"
+	if [ "$one_pc" != '' ]; then
+		sed -i '1d' pc-list-queue
+		#pc_started_count=$((pc_started_count + 1))
+		cp expose-init-template.js expose-test-$k.js
+		if [ "$result" == "1" ] || [ "$result" == "true" ]; then
+			echo ";\nif (!(" >> expose-test-$k.js
+		else
+			echo ";\nif ((" >> expose-test-$k.js
+		fi
+		"$one_pc" >> expose-test-$k.js
+		echo "))\n S$.assert(0);\n"
+		touch cache$k/lock-expose
+		./expose-wrap expose-test-$k.js cache$k/lock-expose out-expose-$k &
+	fi	
+}
+
+function PostExpoSE() {
+	local k=$1
+	mv out-expose-$k EXPOSE-$pc_finished_count
+	mv expose-test-$k.js EXPOSTEST-$pc_finished_count.js
+	pc_finished_count=$((pc_finished_count + 1))
+	input_json="$(cat out-expose-$k | grep " expose replay " | awk '{print $4}' | cut -c2- \
+		| sed 's/.$//' | cut -c2- | sed 's/.$//')"
+	if [ "$input_json" != "" ]; then
+		cp init-template-final.js symbol_assign-expose-$input_ready_count.js
+		for symbol in "${symbol_list[@]}"; do
+			temp="$(echo "$input_json" | sed "s/,\"$symbol\":/\nvar $symbol = /g")"
+			input_json="$temp"	
+		done	
+		symbol_declarations="var $input_json"
+		
+		while read line; do
+			symbol="$(echo "$line" | awk '{print $2}')"
+			sed -i "s/var $symbol = */$line/g" symbol_assign-expose-$input_ready_count.js
+		done <<< "$symbol_declarations"
+		input_ready_count=$((input_ready_count + 1))
+	fi
+}
+
+function PostPageload() {
 	local i=$1
 	local k=$2
 	local j=$(cat cache$k/j)
 
 	local START=$(cat cache$k/begin)
-	local END=$(date +%s.%N)
+	local END=$(cat cache$k/end)
 	local DIFF=$(echo "scale=1; ($END - $START)/1.0" | bc)
-#	echo
-	echo "CPU[$k] = Delay: ${DIFF} s"
-	local finish_symbol="$(cat cache$k/symbol)"
-	local finish_value="$(cat cache$k/value)"
-	if [[ "$finish_value" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then				
-		./extract-path.sh out$k > "LOG-$symbol-$value-$i".txt
-		if [ $i -eq 0 ]; then
-			touch all_symbols.txt
-			echo "$finish_symbol = $finish_value" >> all_symbols.txt
+
+	if [ -f cache$k/symbol ]; then
+		local finish_symbol="$(cat cache$k/symbol)"
+		local finish_value="$(cat cache$k/value)"
+		if [[ "$finish_value" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then				
+			./extract-path.sh out$k > "LOG-$symbol-$value-$i".txt
+			if [ $i -eq 0 ]; then
+				touch all_symbols.txt
+				echo "$finish_symbol = $finish_value" >> all_symbols.txt
+			fi
+		else
+			./extract-path.sh out$k > "LOG-$finish_symbol-$j-$i".txt
+			if [ $i -eq 0 ]; then
+				touch all_symbols.txt
+				echo "$finish_symbol = $j = $finish_value" >> all_symbols.txt
+			fi
 		fi
 	else
-		./extract-path.sh out$k > "LOG-$finish_symbol-$j-$i".txt
-		if [ $i -eq 0 ]; then
-			touch all_symbols.txt
-			echo "$finish_symbol = $j = $finish_value" >> all_symbols.txt
-		fi
+		./extract-path.sh out$k > "LOg-expose-$input_finished_count".txt
+		input_finished_count=$((input_finished_count + 1))
 	fi
-	rm cache$k/begin cache$k/symbol cache$k/value cache$k/j
+
+	# Store PC
+	outfile=$1
+	cat out$k | grep "JALANGI-PC" | awk '{print $3, $6, $9, $11}' > out-new-pc-list # parent_loc, results, loc, pc
+	while read line; do
+		if [ $(cat pc-list | grep -E "^$line$" | wc -l) -eq 0 ]; then
+			echo "$line" >> pc-list
+		fi
+		results="$(echo "$line" | awk '{print $2}')"
+		pc="$(echo "$line" | awk '{print $4}')"
+		redundant=$(cat pc-list | awk '{print $4}' | grep -E "^$pc$" | wc -l)
+		if [ $redundant -gt 0 ]; then # do not solve redundant PCs
+			queue_result="$(cat pc-list-queue | grep "$pc" | awk '{print $1}')"
+			if [ "$results" != "$queue_result"  ]; then # both paths are explored, so remove from the solver's queue
+				sed -i "~$pc~d" pc-list-queue
+			fi
+		else
+			echo "$line" | awk '{print $2, $4}' >> pc-list-queue
+		fi
+	done <<< "$(cat out-new-pc-list)"
+
+	rm cache$k/begin cache$k/symbol cache$k/value cache$k/j out$k
 }
 
 if [ $# -gt 2 ]; then
@@ -523,20 +603,6 @@ mkdir $CHROME_RESULT_DIR/resources 2> /dev/null
 mkdir $CHROME_RESULT_DIR/path-results 2> /dev/null
 
 cd $CHROME_RESULT_DIR
-#killall mitmdump 2> /dev/null
-#sleep 0.5
-#mitmdump --upstream http://localhost:$NGHTTP2_PORT --set block_global=false --insecure -p $MITMPROXY_PORT -s proxy2.py  > /dev/null &
-#mitmdump --insecure -p $MITMPROXY_PORT --set block_global=false  -s proxy2.py > /dev/null &
-
-# <Sample Test>
-#rm -rf mahimahi/www.winterstar.org; USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webrecord mahimahi/www.winterstar.org ./har.sh http://www.winterstar.org
-
-#USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay mahimahi/www.winterstar.org ./startExperiment.sh http://www.winterstar.org init-template.js
-
-
-
-echo "Creating esnstrument-browser.js..."
-node node_modules/browserify/bin/cmd.js esnstrument.js -o esnstrument-browser.js && echo "browserify: 'esnstrument-browser.js' created"
 
 
 count=0
@@ -549,11 +615,13 @@ fi
 if [ ! -f esnstrument-browser.js ] || [ esnstrument-browser.js -ot esnstrument.js  ]; then
    echo "Creating esnstrument-browser.js..."
    rm -f esnstrument-browser*
-#	cp esnstrument.js esnstrument-browser.js
-#   node node_modules/browserify/bin/cmd.js esnstrument.js -o esnstrument-browser.js && echo "browserify: 'esnstrument-browser.js' created"
+   node node_modules/browserify/bin/cmd.js esnstrument.js -o esnstrument-browser.js && echo "browserify: 'esnstrument-browser.js' created"
+   #browserify esnstrument.js -o esnstrument-browser.js -t [ babelify --presets [ @babel/preset-env ]  && echo "browserify: 'esnstrument-browser.js' created"
 fi
 
+
 node template.js --init-template=init-template.js --output=init-template-final.js
+
 
 rm -rf cache*
 
@@ -585,7 +653,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 
 	
 	cd $CHROME_RESULT_DIR
-	rm -f $CHROME_RESULT_DIR/LOG-*.txt $CHROME_RESULT_DIR/symbol_assignment-*.js  $CHROME_RESULT_DIR/all_symbols.txt $CHROME_RESULT_DIR/final_symbols.txt out*
+	rm -f $CHROME_RESULT_DIR/LOG-*.txt $CHROME_RESULT_DIR/all_symbols.txt $CHROME_RESULT_DIR/final_symbols.txt out*
 	#mkdir $temp 2> /dev/null
 	fuser -k $NGHTTP2_PORT/tcp
 	killall mitmdump 2> /dev/null
@@ -615,9 +683,9 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 	#	echo "CPU[$i]: warmining proxy[$i]'s cache with instrumented Javascript resources..."
 
 	START=$(date +%s.%N)
-	USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay $mahimahi_path ./proxy-analysis.sh $website init-template-final.js out0 cache0 $MITMPROXY_PORT "reuseCache"		 #&
+	USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay $mahimahi_path ./proxy-pageload.sh $website init-template-final.js out0 cache0 $MITMPROXY_PORT "reuseCache"		 #&
 		
-		#./proxy-analysis.sh $website init-template-final.js out$i cache$i $((MITMPROXY_PORT + 0)) "reuseCache" &
+		#./proxy-pageload.sh $website init-template-final.js out$i cache$i $((MITMPROXY_PORT + 0)) "reuseCache" &
 		#node har "$finalURL" init-template-final.js out$i cache$i $MITMPROXY_PORT "reuseCache" > out
 		#sleep 1
 	#done
@@ -739,9 +807,9 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 	for (( i = 0 ; i < $CPU_COUNT; i++ )); do
 #		rm -f results.har
 		echo "CPU[$i]: Measuring proxy[$i]'s pageload time..."
-		USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay $mahimahi_path ./proxy-analysis.sh $website init-template-final.js out$i cache$i $MITMPROXY_PORT "reuseCache" &
+		USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay $mahimahi_path ./proxy-pageload.sh $website init-template-final.js out$i cache$i $MITMPROXY_PORT "reuseCache" &
 		
-		#./proxy-analysis.sh $website init-template-final.js out$i cache$i $((MITMPROXY_PORT + 0)) "reuseCache" &
+		#./proxy-pageload.sh $website init-template-final.js out$i cache$i $((MITMPROXY_PORT + 0)) "reuseCache" &
 		#node har "$finalURL" init-template-final.js out$i cache$i $MITMPROXY_PORT "reuseCache" > out
 		#sleep 1
 	done
@@ -773,6 +841,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 		echo "CPU[$i] Loadtime: $loadtime seconds"
 		total="$(echo "$loadtime + $total_loadtime" | bc)"
 		total_loadtime="$total"
+      rm cache$i/begin cache$i/end
 	done
 	if [ $isFail -eq 1 ]; then
 		echo "[SKIP] $finalURL: Pageload failed, skipping..."
@@ -780,14 +849,25 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 	fi
 	avg_loadtime="$(echo "scale=1; $total_loadtime / $CPU_COUNT;" | bc)"
 	total_test_time=$(echo "scale=0; $avg_loadtime * $symbol_instance_count / $CPU_COUNT / 60" | bc)
+	#echo "Expected Test Time: $total_test_time minutes"
+	#echo "[WEBSITE EXPECTED MAXIMUM ANALYSIS TIME]: $finalURL --> $(echo "scale = 0; $total_test_time" | bc) minutes (URLs: $url_count)"
 	if [[ $(echo "$total_test_time > $TIME_LIMIT" | bc -l) -eq 1 ]]; then
-		echo "[SKIP] $finalURL: Pageload failed, skipping (2)..."
+		echo "[SKIP] $finalURL..." # : $total_test_time minutes is too long, skipping..."
 		continue
 	fi	
 
 	
 	echo "[WEBSITE ANALYSIS START]: $finalURL"
 
+	rm -f lock-expose pc-list pc-list-queue input-list input-list-queue
+	touch lock-expose pc-list pc-list-queue input-list input-list-queue
+
+	input_ready_count=0
+	input_started_count=0
+	input_finished_count=0  
+
+	#pc_started_count=0
+	pc_finished_count=0
 
 	mkdir -p $CHROME_RESULT_DIR/path-results/$mahimahi_path 2> /dev/null
 	total_looked=0
@@ -799,10 +879,9 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 		
 		for symbol in "${symbol_list[@]}"; do
 			symbol_original="$(echo "$symbol" | sed 's/_/./g' )"
-			if grep -q "$symbol_original" outD; then
-				: 
+			if grep -q "$symbol_original" outD; then 
+				:
 			else
-				#echo "[$((i+1))] Symbol Void: $symbol_original"
 				continue
 			fi
 			ARR="$(eval echo \${${symbol}[@]})"
@@ -811,7 +890,6 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 			for v in "${arr[@]}"; do
 				total_looked=$((total_looked + 1))
 				value=$(echo "$v" | sed 's/~/ /g' | sed 's/MY_TILDE/~/g' | sed 's/MY_NULL//g'  )
-				#echo "Website: $finalURL"
 				if [[ "$value" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
 					if [ $i -ne 0  ] && [ $(ls LOG-$symbol-$value-*.txt 2> /dev/null | wc -l) -eq 0 ]; then
 						j=$((j + 1)) 
@@ -831,20 +909,20 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 
 				k=0
 				while true; do
-					if [ ! -f cache$k/lock ]; then
+					if [ ! -f cache$k/lock-pageload ]; then
 						if [ -f cache$k/begin  ]; then
-							postProcess $i $k
+							PostPageload $i $k
 							m=$((m + 1))
 						fi
-						echo "$(date +%s.%N)" > cache$k/begin
 						echo "$symbol" > cache$k/symbol
 						echo "$value" > cache$k/value
 						echo "$j" > cache$k/j
 						n=$((n + 1))
-						echo "Path investigation by CPU[$k]... $((total_looked * 100 / symbol_instance_count)) %"
+                  echo "Path investigation by CPU[$k]... $((total_looked * 100 / symbol_instance_count)) %"
 						#node har "$finalURL" init-template-ready.js $MITMPROXY_PORT > out
-						USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay $mahimahi_path ./proxy-analysis.sh $website init-template-ready.js out$k cache$k 8182 "reuseCache" &
-						sleep 2
+						touch cache$k/lock-pageload
+						USER_AGENT="Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.90 Mobile Safari/537.36" mm-webreplay $mahimahi_path ./proxy-pageload.sh $website init-template-ready.js out$k cache$k 8182 "reuseCache" &
+						#sleep 2
 						break
 					fi
 					k=$((k + 1))
@@ -860,18 +938,16 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 		done
 		k=0
 		while true; do
-			if [ ! -f cache$k/begin  ] && [ ! -f cache$k/lock  ]; then
-				echo "CPU $k finished"
+			if [ ! -f cache$k/begin  ] && [ ! -f cache$k/lock-pageload  ]; then
 				k=$((k + 1))
 				if [ $k -eq $CPU_COUNT ]; then
 					break
 				fi
 				continue
 			fi
-			if [ -f cache$k/begin  ] && [ ! -f cache$k/lock  ]; then
-				postProcess $i $k
+			if [ -f cache$k/begin  ] && [ ! -f cache$k/lock-pageload  ]; then
+				PostPageload $i $k
 				m=$((m + 1))
-				echo "Path finished by CPU[$k] ( $((total_looked * 100 / symbol_instance_count)) % )"
 				k=$((k + 1))
 			fi			
 			if [ $k -eq $CPU_COUNT ]; then
@@ -884,8 +960,8 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 
 	for symbol in "${symbol_list[@]}"; do
 		symbol_original="$(echo "$symbol" | sed 's/_/./g' )"
-		if grep -q "$symbol_original" outD; then 
-			echo "Symbol Processing..."
+		if grep -q "$symbol_original" outD; then
+			: 
 		else
 			continue
 		fi
@@ -925,35 +1001,18 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 	touch final_symbols.txt
 	sleep 0.1
 	for filename in LOG-*.txt; do
-#echo "Filename: $filename"
 		extract=$(echo "$filename" | sed "s/LOG-//g" | sed "s/.txt//g" | sed "s/-/ = /g"  )
-#echo "Extract: $extract"
 		if [ "$(cat all_symbols.txt | grep "$extract ")" != "" ]; then
 			cat all_symbols.txt | grep "$extract " | sed -e "s/= .* = /= \"/g" | sed 's/_/./g' | sed -e "s/$/\"/g" >> final_symbols.txt
 		else
 			cat all_symbols.txt | grep -E "$extract$" | sed 's/_/./g' >> final_symbols.txt
 		fi
 	done
-	#cksum LOG-*.txt | sort -n > filelist
-	#old=""
-	#while read sum lines filename
-	#do
-	#		if [[ "$sum" != "$old" ]] ; then
-	#				old="$sum"
-	#				continue
-	#		fi
-	#		echo "Remove duplicate $filename..."
-	#		rm -f "$filename"
-	#done < filelist
-	#rm filelist
 
 	path_count=$(ls LOG-*.txt | wc -l)
-	
+
+
    symbols="$(cat final_symbols.txt)"
-
-	echo "- Found Paths: $path_count"
-	echo
-
    i=0
    while read symbol_value; do
       symbol="$(echo "$symbol_value" | awk -F'=' '{print $1}')"
@@ -961,14 +1020,40 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
       replaced_symbol_value="$(echo "$symbol_value" | sed "s/$symbol/$replaced_symbol/g" | sed 's/\//\\\//g' )"
 
       #sed "s/var ${replaced_symbol} =.*/var ${replaced_symbol_value}/g" init-template.js > "$folder/symbol_assignment_$replaced_symbol-$i.js"
-      sed "s/var ${replaced_symbol} =.*/var ${replaced_symbol_value}/g" symbols_default.js > "symbol_assignment-$i.js"
+      sed "s/var ${replaced_symbol} =.*/var ${replaced_symbol_value}/g" init-template.js > "symbol_assignment-$i.js"
       i=$((i + 1))
    done <<< "$symbols"
-   log_count=$(ls $folder | grep LOG | wc -l)
 
-	rm LOG-*.txt all_symbols.txt final_symbols.txt 
-	mv symbol_assignment-*.js $CHROME_RESULT_DIR/path-results/$mahimahi_path/
+	k=0
+	while true; do
+		if [ ! -f cache$k/lock-pageload  ] && [ ! -f cache$k/lock-expose ]; then # CPU is running pageload
+			if [ -f out$k ]; then	# finished pageload, enqueue to pc-list-queue
+				PostPageload "unused", $k 
+			elif [ -f out-expose-$k ]; then	# finished ExpoSE, create symbol_assign-expose-*.js increase & input_ready_count
+				PostExpoSE $k	
+			fi
+			if [ $input_ready_count -ne $input_started_count ]; then
+				ExecutePageload $website, $mahimahi_path, $k # increase input_started_count 
+			elif [ $(cat pc-list-queue | wc -l) -ne 0 ]; then
+				ExecuteExpoSE $k # dequeue pc-list-queue, increase pc_started_count
+			fi
+			# all CPUs idle, pc-list-queue is empty, input_ready_count -eq input_started_count
+			if [ $(ls cache*/lock-expose 2> /dev/null | wc -l) -eq 0 ] && [ $(ls cache*/lock-pageload 2> /dev/null | wc -l) -eq 0 ] && [ $(cat pc-list-queue | wc -l) -eq 0 ]  && [ $input_ready_count -eq $input_started_count ]; then
+				break	
+			fi
+		fi
+		k=$((k + 1))
+		if [ $k -eq $CPU_COUNT ]; then
+			k=0
+		fi
+		sleep 0.5
+	done
 
+	echo
+   echo "- Found Paths: $path_count"
+   echo
+   rm -rf $CHROME_RESULT_DIR/path-results/$mahimahi_path/*
+   mv LOG-*.txt all_symbols.txt final_symbols.txt symbol_assignment-*.js pc-list $CHROME_RESULT_DIR/path-results/$mahimahi_path/
 
 	if [ "$isForced" == "yes" ] && [ $# -ne 0 ] ; then
 		break

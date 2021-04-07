@@ -332,17 +332,17 @@ if (args.length == 9 || args.length == 8) {
     if (inject_filepath) {
       await page.evaluateOnNewDocument(
         () => {
-console.log("Injected Javascript!!!!!!!!!!!!!!!!!");
+console.log("Injected Javascript on new document!!!");
           const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
               if (Array.from(mutation.addedNodes).some(node => node.nodeName === 'html' || node.nodeName === 'BODY')) {
-console.log("Add Node by eval() 1 !!!!!!!!!!!!!!!!!");
+//console.log("Add Node by eval() 1 !!!!!!!!!!!!!!!!!");
                 eval(init_js_file_contents);
-console.log("Add Node by eval() 2 !!!!!!!!!!!!!!!!!");
+//console.log("Add Node by eval() 2 !!!!!!!!!!!!!!!!!");
                 init_js_file(); // initialize from template
-console.log("Add Node by eval() 3 !!!!!!!!!!!!!!!!!");
+//console.log("Add Node by eval() 3 !!!!!!!!!!!!!!!!!");
                 eval('if (typeof PrintAll != "undefined") PrintAll()');
-console.log("Add Node by eval() 4 !!!!!!!!!!!!!!!!!");
+//console.log("Add Node by eval() 4 !!!!!!!!!!!!!!!!!");
               }
               if (Array.from(mutation.addedNodes).some(node => node.nodeName === 'BODY')) {
                 observer.disconnect();
@@ -360,6 +360,7 @@ console.log("Add Node by eval() 4 !!!!!!!!!!!!!!!!!");
     await page.goto(visitURL, {timeout: 30000000});
     
     const timing = await page.evaluate(() => {
+console.log('JALANGI_FINAL_COOKIE: ' + document.cookie);
       const result = {};
       for (const key of Object.keys(window.performance.timing.__proto__))
         result[key] = window.performance.timing[key];
@@ -396,7 +397,7 @@ console.log("Add Node by eval() 4 !!!!!!!!!!!!!!!!!");
      } else {
        // disable javascript, but leave the browser open
        await page.setJavaScriptEnabled(false);
-//await browser.close();
+await browser.close();
      }
     fs.readFile(har_filename, function (err, data) {
       var json = JSON.parse(data)

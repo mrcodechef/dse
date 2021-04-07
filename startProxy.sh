@@ -41,4 +41,4 @@ if [ ! -f esnstrument-browser.js ] || [ esnstrument-browser.js -ot esnstrument.j
 	#browserify esnstrument.js -o esnstrument-browser.js -t [ babelify --presets [ @babel/preset-env ]  && echo "browserify: 'esnstrument-browser.js' created"
 fi
 
-mitmdump --ssl-insecure -p $1 -s proxy2.py --set block_global=false # args="--inlineIID --inlineSource --analysis UniqueLines.js" --ignore-hosts ^localhost
+mitmdump --ssl-insecure -p $1 -s proxy.py --set block_global=false # args="--inlineIID --inlineSource --analysis UniqueLines.js" --ignore-hosts ^localhost

@@ -38,120 +38,139 @@ var document_documentElement_clientHeight = document.documentElement.clientHeigh
 var document_documentElement_clientLeft = document.documentElement.clientLeft
 var document_documentElement_clientTop = document.documentElement.clientTop
 
+if (typeof origin_number_toString === 'undefined')
+	window.origin_number_toString = Number.prototype.toString;
+
+if (typeof window.origin_obj_hasOwnProperty === 'undefined')
+	window.origin_obj_hasOwnProperty = Object.prototype.hasOwnProperty;
+
+if (typeof window.origin_obj_defineProperty === 'undefined')
+	window.origin_obj_defineProperty =  Object.defineProperty;
+
+if (typeof window.origin_obj_getOwnPropertyDescriptor  === 'undefined')
+	window.origin_obj_getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
+if (typeof origin_obj_values === 'undefined')
+   origin_obj_values = Object.values;
+
+if (typeof window.origin_obj_toString === 'undefined')
+	window.origin_obj_toString = Object.prototype.toString;
+
+if (typeof window.origin_obj_keys === 'undefined')
+	window.origin_obj_keys = Object.keys;
 
 
-if (!window.origin_obj_hasOwnProperty)
-window.origin_obj_hasOwnProperty = Object.prototype.hasOwnProperty;
+if (typeof window.origin_array_includes === 'undefined')
+	window.origin_array_includes = Array.prototype.includes;
 
-if (!window.origin_obj_defineProperty)
-window.origin_obj_defineProperty =  Object.defineProperty;
+if (typeof window.origin_array_push === 'undefined')
+	window.origin_array_push = Array.prototype.push;
 
-if (!window.origin_obj_getOwnPropertyDescriptor)
-window.origin_obj_getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+if (typeof window.origin_array_pop === 'undefined')
+	window.origin_array_pop = Array.prototype.pop;
 
-if (!window.origin_obj_toString)
-window.origin_obj_toString = Object.prototype.toString;
+if (typeof window.origin_array_slice === 'undefined')
+	window.origin_array_slice = Array.prototype.slice;
 
-if (!window.origin_obj_keys)
-window.origin_obj_keys = Object.keys;
+if (typeof window.origin_array_join === 'undefined')
+	window.origin_array_join = Array.prototype.join;
 
+if (typeof window.origin_array_forEach === 'undefined')
+	window.origin_array_forEach = Array.prototype.forEach
 
-if (!window.origin_array_includes)
-window.origin_array_includes = Array.prototype.includes;
+if (typeof window.origin_array_map === 'undefined')
+	window.origin_array_map = Array.prototype.map
 
-if (!window.origin_array_push)
-window.origin_array_push = Array.prototype.push;
+if (typeof window.origin_array_concat === 'undefined')
+	window.origin_array_concat = Array.prototype.concat
 
-if (!window.origin_array_pop)
-window.origin_array_pop = Array.prototype.pop;
+if (typeof window.origin_array_shift === 'undefined')
+	window.origin_array_shift = Array.prototype.shift
 
-if (!window.origin_array_slice)
-window.origin_array_slice = Array.prototype.slice;
+if (typeof window.origin_array_unshift === 'undefined')
+	window.origin_array_unshift = Array.prototype.unshift
 
-if (!window.origin_array_join)
-window.origin_array_join = Array.prototype.join;
+if (typeof window.origin_array_isArray === 'undefined')
+	window.origin_array_isArray = Array.isArray
 
-if (!window.origin_array_forEach)
-window.origin_array_forEach = Array.prototype.forEach
+if (typeof window.origin_array_reverse === 'undefined')
+	window.origin_array_reverse = Array.prototype.reverse
 
-if (!window.origin_array_map)
-window.origin_array_map = Array.prototype.map
+if (typeof window.origin_array_splice === 'undefined')
+	window.origin_array_splice = Array.prototype.splice
 
-if (!window.origin_array_concat)
-window.origin_array_concat = Array.prototype.concat
+if (typeof window.origin_array_find === 'undefined')
+	window.origin_array_find = Array.prototype.find
 
-if (!window.origin_array_shift)
-window.origin_array_shift = Array.prototype.shift
+if (typeof origin_fn_apply === 'undefined')
+	origin_fn_apply = Function.prototype.apply;
 
-if (!window.origin_array_unshift)
-window.origin_array_unshift = Array.prototype.unshift
+if (typeof window.origin_fn_toString === 'undefined')
+	window.origin_fn_toString = Function.prototype.toString;
 
-if (!window.origin_array_isArray)
-window.origin_array_isArray = Array.isArray
-
-if (!window.origin_array_reverse)
-window.origin_array_reverse = Array.prototype.reverse
-
-if (!window.origin_array_splice)
-window.origin_array_splice = Array.prototype.splice
-
-if (!window.origin_array_find)
-window.origin_array_find = Array.prototype.find
-
-if (!window.origin_str_split)
-window.origin_str_split = String.prototype.split
-
-if (!window.origin_fn_toString)
-window.origin_fn_toString = Function.prototype.toString;
-
-if (!window.origin_fn_toString)
-window.origin_symbol_toString = Symbol.prototype.toString;
+if (typeof window.origin_symbol_toString === 'undefined')
+	window.origin_symbol_toString = Symbol.prototype.toString;
 
 
-if (!window.origin_str_search)
-window.origin_str_search = String.prototype.search;
+if (typeof window.origin_str_search === 'undefined')
+	window.origin_str_search = String.prototype.search;
 
-if (!window.origin_str_includes)
-window.origin_str_includes = String.prototype.includes;
+if (typeof window.origin_str_includes === 'undefined')
+	window.origin_str_includes = String.prototype.includes;
 
-if (!window.origin_str_indexOf)
-window.origin_str_indexOf = String.prototype.indexOf;
+if (typeof window.origin_str_indexOf === 'undefined')
+	window.origin_str_indexOf = String.prototype.indexOf;
+
+if (typeof window.origin_str_split === 'undefined')
+	window.origin_str_split = String.prototype.split
+
+if (typeof window.origin_str_substring === 'undefined')
+	window.origin_str_substring = String.prototype.substring;
+
+if (typeof window.origin_str_replace === 'undefined')
+	window.origin_str_replace = String.prototype.replace;
+
+if (typeof origin_json_stringify === 'undefined')
+   origin_json_stringify = JSON.stringify;
+
+if (typeof origin_json_parse === 'undefined')
+	origin_json_parse = JSON.parse;
+
+if (typeof regexp_exec === 'undefined')
+	origin_regexp_exec = RegExp.prototype.exec;
+
+if (typeof origin_regexp_test === 'undefined')
+   origin_regexp_test = RegExp.prototype.test;
 
 
-if (!window.origin_str_substring)
-window.origin_str_substring = String.prototype.substring;
-
-if (!window.origin_str_replace)
-window.origin_str_replace = String.prototype.replace;
-
-
-
-
-if (!window.origin_Date)
+if (typeof window.origin_Date === 'undefined')
    window.origin_Date = Date;
 
-if (!window.origin_Date_now)
+if (typeof window.origin_Date_now === 'undefined')
    window.origin_Date_now = Date.now;
 
-if (!window.origin_Date_getTime)
+if (typeof window.origin_Date_getTime === 'undefined')
    window.origin_Date_getTime = Date.prototype.getTime;
 
-if (!window.origin_Date_setTime)
+if (typeof window.origin_Date_getUTCFullYear === 'undefined')
+   window.origin_Date_getUTCFullYear = Date.prototype.UTCFullYear;
+
+if (typeof window.origin_Date_setTime === 'undefined')
    window.origin_Date_setTime = Date.prototype.setTime;
 
-if (!window.origin_Date_toGMTString)
+if (typeof window.origin_Date_toGMTString === 'undefined')
    window.origin_Date_toGMTString = Date.prototype.toGMTString;
 
-if (!window.origin_Math)
+if (typeof window.origin_Math === 'undefined')
    window.origin_Math = Math;
 
-if (!window.origin_Math_random)
+if (typeof window.origin_Math_random === 'undefined')
    window.origin_Math_random = Math.random;
 
-if (!window.origin_crypto)
+if (typeof window.origin_crypto === 'undefined')
    window.origin_crypto = crypto
 
-if (!window.origin_crypto_getRandomValues)
+if (typeof window.origin_crypto_getRandomValues === 'undefined')
    window.origin_crypto_getRandomValues = crypto.getRandomValues
 
 	window.origin_obj_defineProperty(window.screen, 'width', {

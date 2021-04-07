@@ -1,6 +1,7 @@
 
 # mitmdump --mode upstream:http://localhost:8181 --ssl-insecure -p 8182 proxy2.py
-
+import time
+import json
 import codecs
 import hashlib
 import os
@@ -26,6 +27,15 @@ import jsbeautifier
 from filelock import FileLock
 import threading
 import glob
+
+
+def is_json(myjson):
+  try:
+    json_object = json.loads(myjson)
+  except ValueError as e:
+    return False
+  return True
+
 
 cache_id = os.getenv('PROXY_CACHE_FOLDER_NAME')
 
@@ -63,6 +73,7 @@ FILE_HASH_LIST = FILE_DIR + "/" + CACHE_FOLDER + "/file_hash_list.txt"
 ANALYSIS_SCRIPT = FILE_DIR + "/UniqueLines2.js"
 JALANGI_SCRIPT = FILE_DIR + "/jalangi.js"
 
+REGENERATOR_RUNTIME_JS = FILE_DIR + "/regeneratorRuntime.js"
 CONFIG_JS = FILE_DIR + "/Config.js"
 CONSTANTS_JS = FILE_DIR + "/Constants.js"
 ASTUTIL_JS = FILE_DIR + "/astUtil.js"
@@ -75,7 +86,11 @@ ANALYSIS_JS = FILE_DIR + "/analysis.js"
 SYMBOL_LIST = ["document.cookie", "screen.width", "screen.height", "screen.availWidth", "screen.availHeight", "screen.colorDepth", "screen.pixelDepth", "navigator.userAgent", "navigator.platform", "document.referrer", "document.lastModified", "Math.random", "crypto.getRandomValues", "Date.now", "new Date()", "document.documentElement.offsetWidth", "document.documentElement.offsetHeight", "document.documentElement.offsetLeft", "document.documentElement.offsetTop", "document.documentElement.scrollWidth", "document.documentElement.scrollHeight", "document.documentElement.scrollLeft", "document.documentElement.scrollTop", "document.documentElement.clientWidth", "document.documentElement.clientHeight", "document.documentElement.clientLeft", "document.documentElement.clientTop", "document.body.offsetWidth", "document.body.offsetHeight", "document.body.offsetLeft", "document.body.offsetTop", "document.body.scrollWidth", "document.body.scrollHeight", "document.body.scrollLeft", "document.body.scrollTop", "document.body.clientWidth", "document.body.clientHeight", "document.body.clientLeft", "document.body.clientTop"]
 
 module_list = []
-ESNSTRUMET_BROWSER_JS_STR = ''
+
+with open(REGENERATOR_RUNTIME_JS,'r') as file:
+	REGENERATOR_RUNTIME_STR = file.read()
+with open(ANALYSIS_SCRIPT,'r') as file:
+	ANALYSIS_SCRIPT_STR = file.read()
 with open(CONFIG_JS,'r') as file:
 	CONFIG_JS_STR = file.read()
 with open(CONSTANTS_JS,'r') as file:
@@ -176,7 +191,9 @@ def processFile (flow, content, originalFileName, instrumentedFileName):
 	try:
 		if content == None:
 			return
-		if originalFileName.find('service-worker.js') >= 0:
+		elif originalFileName.find('service-worker.js') >= 0:
+			return content
+		elif is_json(content):
 			return content
 
 		filename_hash = hashlib.md5(originalFileName.encode('utf-8')).hexdigest()
@@ -365,7 +382,6 @@ def response(flow):
 
 		if content_type.find('javascript') >= 0 and flow.request.url not in module_list:	
 			print("URL: " + flow.request.url)
-
 			foundDate = False	
 			res = re.search("[ \t]+instanceof[ \t]+Date", flow.response.text)
 			if res != '' and res != None:
@@ -477,7 +493,7 @@ def response(flow):
 				#new_script_tag.string="console.log('BeautifulSoup Injected Script')\n"
 
 				# COMMENT OUT FOR DEBUGGING
-				new_script_tag.string = CONFIG_JS_STR + CONSTANTS_JS_STR + ASTUTIL_JS_STR + ESNSTRUMENT_BROWSER_JS_STR + IIDTOLOCATION_JS_STR + ANALYSIS_JS_STR + ANALYSIS_SCRIPT_STR
+				new_script_tag.string = REGENERATOR_RUNTIME_STR + CONFIG_JS_STR + CONSTANTS_JS_STR + ASTUTIL_JS_STR + ESNSTRUMENT_BROWSER_JS_STR + IIDTOLOCATION_JS_STR + ANALYSIS_JS_STR + ANALYSIS_SCRIPT_STR
 				#new_script_tag.string = CONFIG_JS_STR + CONSTANTS_JS_STR + ASTUTIL_JS_STR + IIDTOLOCATION_JS_STR + ANALYSIS_JS_STR + ANALYSIS_SCRIPT_STR
 
 
@@ -494,18 +510,18 @@ def response(flow):
 				elif soup.html.body != None:
 					soup.html.body.insert(0, new_script_tag)	
 
-				append_string = ";\nconsole.log('JALANGI_FINAL_COOKIE: ' + document.cookie);\n"
-				if last_script_writable != None:
-					last_script_writable.string += append_string
-					#last_script_writable.string += "J$.analysis.printSymbols();\n"
-				else:
-					new_script_tag2 = soup.new_tag('script')
-					new_script_tag2.string = append_string
-					if soup.html.body != None:
-						#soup.html.body.append(new_script_tag2)
-						soup.html.body.insert(6, new_script_tag2)
-					elif soup.html.head != None:
-						soup.html.head.append(new_script_tag2)
+#				append_string = " ;\nconsole.log('JALANGI_FINAL_COOKIE: ' + document.cookie);\n"
+#				if last_script_writable != None:
+#					last_script_writable.string += append_string
+#					#last_script_writable.string += "J$.analysis.printSymbols();\n"
+#				else:
+#					new_script_tag2 = soup.new_tag('script')
+#					new_script_tag2.string = append_string
+#					if soup.html.body != None:
+#						soup.html.body.append(new_script_tag2)
+#						#soup.html.body.insert(6, new_script_tag2)
+#					elif soup.html.head != None:
+#						soup.html.head.append(new_script_tag2)
 
 				html_instrumented_str= str(soup)
 

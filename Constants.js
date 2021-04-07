@@ -23,88 +23,149 @@ if (typeof JALANGI_$ === 'undefined') {
 //var origin_crypto_getRandomValues;
 
 
+if (typeof origin_number_toString === 'undefined')
+   origin_number_toString = Number.prototype.toString;
 
-origin_number_toString = Number.prototype.toString;
+if (typeof origin_obj_hasOwnProperty === 'undefined')
+   origin_obj_hasOwnProperty = Object.prototype.hasOwnProperty;
 
-origin_obj_hasOwnProperty = Object.prototype.hasOwnProperty;
-origin_obj_defineProperty =  Object.defineProperty;
-origin_obj_getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-origin_obj_values = Object.values;
+if (typeof origin_obj_defineProperty === 'undefined')
+   origin_obj_defineProperty =  Object.defineProperty;
 
-if (typeof origin_obj_tostring === 'undefined')
-	origin_obj_toString = Object.prototype.toString;
+if (typeof origin_obj_getOwnPropertyDescriptor  === 'undefined')
+   origin_obj_getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
-if (typeof origin_obj_tostring_call === 'undefined')
-	origin_obj_toString_call = Object.prototype.toString.call;
+if (typeof origin_obj_values === 'undefined')
+   origin_obj_values = Object.values;
 
-origin_obj_keys = Object.keys;
+if (typeof origin_obj_toString === 'undefined')
+   origin_obj_toString = Object.prototype.toString;
 
-origin_array_includes = Array.prototype.includes;
-origin_array_push = Array.prototype.push;
-origin_array_pop = Array.prototype.pop;
-origin_array_slice = Array.prototype.slice;
-origin_array_join = Array.prototype.join;
-origin_array_forEach = Array.prototype.forEach
-origin_array_map = Array.prototype.map
-origin_array_concat = Array.prototype.concat
-origin_array_shift = Array.prototype.shift
-origin_array_unshift = Array.prototype.unshift
-origin_array_isArray = Array.isArray
-origin_array_reverse = Array.prototype.reverse
-origin_array_splice = Array.prototype.splice
-origin_array_find = Array.prototype.find
-
-origin_fn_apply = Function.prototype.apply;
+if (typeof origin_obj_keys === 'undefined')
+   origin_obj_keys = Object.keys;
 
 
-if (typeof window !== 'undefined' && typeof window.origin_fn_toString !== 'undefined')
-	origin_fn_toString = window.origin_fn_toString;
+if (typeof origin_array_includes === 'undefined')
+   origin_array_includes = Array.prototype.includes;
 
-if (typeof origin_fn_toString_call === 'undefined')
-	origin_fn_toString_call = Function.prototype.toString.call;
+if (typeof origin_array_push === 'undefined')
+   origin_array_push = Array.prototype.push;
 
-if (typeof origin_fn_tostring === 'undefined')
-	origin_fn_toString = Function.prototype.toString;
+if (typeof origin_array_pop === 'undefined')
+   origin_array_pop = Array.prototype.pop;
 
-if (typeof origin_symbol_tostring === 'undefined')
-	origin_symbol_toString = Symbol.prototype.toString;
+if (typeof origin_array_slice === 'undefined')
+   origin_array_slice = Array.prototype.slice;
 
-origin_str_search = String.prototype.search;
-origin_str_includes = String.prototype.includes;
-origin_str_indexOf = String.prototype.indexOf;
-origin_str_split = String.prototype.split;
-origin_str_substring = String.prototype.substring;
-origin_str_replace = String.prototype.replace;
+if (typeof origin_array_join === 'undefined')
+   origin_array_join = Array.prototype.join;
 
-origin_json_stringify = JSON.stringify;
-origin_json_parse = JSON.parse;
+if (typeof origin_array_forEach === 'undefined')
+   origin_array_forEach = Array.prototype.forEach
 
-origin_regexp_exec = RegExp.prototype.exec;
+if (typeof origin_array_map === 'undefined')
+   origin_array_map = Array.prototype.map
 
-//console.log("Existing");
-console.log(typeof origin_regexp_test);
+if (typeof origin_array_concat === 'undefined')
+   origin_array_concat = Array.prototype.concat
+
+if (typeof origin_array_shift === 'undefined')
+   origin_array_shift = Array.prototype.shift
+
+if (typeof origin_array_unshift === 'undefined')
+   origin_array_unshift = Array.prototype.unshift
+
+if (typeof origin_array_isArray === 'undefined')
+   origin_array_isArray = Array.isArray
+
+if (typeof origin_array_reverse === 'undefined')
+   origin_array_reverse = Array.prototype.reverse
+
+if (typeof origin_array_splice === 'undefined')
+   origin_array_splice = Array.prototype.splice
+
+if (typeof origin_array_find === 'undefined')
+   origin_array_find = Array.prototype.find
+
+if (typeof origin_fn_apply === 'undefined')
+   origin_fn_apply = Function.prototype.apply;
+
+if (typeof origin_fn_toString === 'undefined')
+   origin_fn_toString = Function.prototype.toString;
+
+if (typeof origin_symbol_toString === 'undefined')
+   origin_symbol_toString = Symbol.prototype.toString;
+
+
+if (typeof origin_str_search === 'undefined')
+   origin_str_search = String.prototype.search;
+
+if (typeof origin_str_includes === 'undefined')
+   origin_str_includes = String.prototype.includes;
+
+if (typeof origin_str_indexOf === 'undefined')
+   origin_str_indexOf = String.prototype.indexOf;
+
+if (typeof origin_str_split === 'undefined')
+   origin_str_split = String.prototype.split
+
+if (typeof origin_str_substring === 'undefined')
+   origin_str_substring = String.prototype.substring;
+
+if (typeof origin_str_replace === 'undefined')
+   origin_str_replace = String.prototype.replace;
+
+if (typeof origin_json_stringify === 'undefined')
+   origin_json_stringify = JSON.stringify;
+
+if (typeof origin_json_parse === 'undefined')
+   origin_json_parse = JSON.parse;
+
+if (typeof regexp_exec === 'undefined')
+   origin_regexp_exec = RegExp.prototype.exec;
+
 if (typeof origin_regexp_test === 'undefined')
-	origin_regexp_test = RegExp.prototype.test;
+   origin_regexp_test = RegExp.prototype.test;
 
 
+if (typeof origin_Date === 'undefined')
+   origin_Date = Date;
 
-origin_console_log = console.log;
+if (typeof origin_Date_now === 'undefined')
+   origin_Date_now = Date.now;
 
-	origin_date = Date;
-	origin_Date_now = Date.now;
-	origin_Date_getTime = Date.prototype.getTime;
-	origin_Date_setTime = Date.prototype.setTime;
-	origin_Date_toGMTString = Date.prototype.toGMTString;
+if (typeof origin_Date_getTime === 'undefined')
+   origin_Date_getTime = Date.prototype.getTime;
 
-	origin_Math = Math;
-	origin_Math_random = Math.random;
+if (typeof origin_Date_setTime === 'undefined')
+   origin_Date_setTime = Date.prototype.setTime;
 
-//if (!origin_crypto)
-//	origin_crypto = crypto
+if (typeof origin_Date_getUTCFullYear === 'undefined')
+   origin_Date_getUTCFullYear = Date.prototype.UTCFullYear;
 
-//if (!origin_crypto_getRandomValues)
-//	origin_crypto_getRandomValues = crypto.getRandomValues
+if (typeof origin_Date_toGMTString === 'undefined')
+   origin_Date_toGMTString = Date.prototype.toGMTString;
 
+if (typeof origin_Date_parse === 'undefined')
+   origin_Date_parse = Date.parse;
+
+if (typeof origin_Date_UTC === 'undefined')
+   origin_Date_UTC = Date.UTC;
+
+if (typeof origin_Math === 'undefined')
+   origin_Math = Math;
+
+if (typeof origin_Math_random === 'undefined')
+   origin_Math_random = Math.random;
+
+if (typeof crypto !== 'undefined' && typeof origin_crypto === 'undefined')
+   origin_crypto = crypto
+
+if (typeof crypto !== 'undefined' && typeof origin_crypto_getRandomValues === 'undefined')
+   origin_crypto_getRandomValues = crypto.getRandomValues
+
+if (typeof origin_console_log === 'undefined')
+   origin_console_log = console.log;
 
 safe_print = (function (a)
 {
@@ -124,6 +185,37 @@ origin_console_log("OUT");
 
 		}*/
 });
+
+function safe_json_stringify(value) {
+	if (!value)
+		return value;
+
+safe_print(value);
+	var key_array = origin_obj_keys(value);
+safe_print(key_array);
+safe_print(key_array[key_array.length - 1]);
+   const lastKey = origin_array_pop.call(key_array);
+   let objString = '';    
+	if (typeof value === 'object') {
+        // We add the first curly brace
+      objString += '{';        
+		for (const key in value) {
+         objString += `"${key}":${stringify(value[key])}`;
+            
+         // We add the comma
+         if (key !== lastKey) {
+               objString += ',';
+         }
+      }        // We add the last curly brace
+        objString += '}';
+
+    } else if (typeof value === 'string') {
+        objString += `"${value}"`;
+    } else if (typeof value === 'number') {
+        objString += `${value}`;
+    }    return objString;
+}
+
 
 //console.log("Hi");
 (function (sandbox) {

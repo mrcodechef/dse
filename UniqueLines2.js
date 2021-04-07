@@ -27,17 +27,27 @@
  */
 
 var DEBUG = false;true;//false; //true;
-var PRINT_LINE_PERIOD_FACTOR = Infinity;1;0;1;Infinity;//0;1;//1000; 
+var PRINT_LINE_PERIOD_FACTOR = 0;Infinity;0;Infinity;1;0;1;Infinity;//0;1;//1000; 
 	// 0: do not print line info
 	// 1: print every time, 									
 	// 1000: print every 1000th times
 	// INFINITY: print only once
-var PRINT_STACK_START_DEPTH = 0;0;500;0;500;1000;500;
+var PRINT_STACK_START_DEPTH = 0;1000;300;0;0;500;0;500;1000;500;
+// Setting PRINT_STACK_START_DEPTH to 0 makes the program run fastest
 
 var JALANGI_READ = true;//false; //true;
 
-
 /* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects */
+
+var hacked_native_fn_array = [ origin_Date_now, 
+								origin_Date_getTime, 
+								origin_Date_setTime, 
+								origin_Date_parse,
+								origin_Date_toGMTString,
+								origin_Date_UTC,
+								origin_Math_random, 
+								(typeof origin_crypto_getRandomValues !== 'undefined' ? origin_crypto_getRandomValues : null) ]
+
 var no_dom_native_fn_dict = {
   'eval': eval,
   'parseInt': parseInt,
@@ -814,7 +824,7 @@ try {
 
 
 function no_dom_native_fn_str(f) {
-  return origin_array_find.call(origin_obj_keys(no_dom_native_fn_dict), (key => no_dom_native_fn_dict[key] === f));
+  return origin_array_find.call(origin_obj_keys(no_dom_native_fn_dict), (function (key) { var desc = origin_obj_getOwnPropertyDescriptor(no_dom_native_fn_dict, key); return desc && desc.value  === f }));
 }
 
 
@@ -856,7 +866,7 @@ class ConcolicValue {
     total_lines = 0;
     cur_line = -1;
     pc_id = 0;
-    pc_parent_id = -1;
+    parent_pc_loc = "root";
     pc_depth = 0;
     this.printSymbols = function () {
       safe_print("<Symbols List>")
@@ -945,13 +955,14 @@ class ConcolicValue {
     // }
 
     function isNativeFn(fn) {
-      if (fn === origin_fn_toString || fn === origin_obj_toString)
-        return true;
-
+//      if (fn === origin_fn_toString || fn === origin_obj_toString)
+//        return true;
+//		return (no_dom_native_fn_str(fn) != undefined) || typeof fetch !== 'undefined' && fn === fetch;
+ 
       var fn_str = '';
       if (typeof fn === 'function') {
 //safe_print("Before 1");
-        fn_str = origin_obj_toString.call(fn);
+        fn_str = origin_fn_toString.call(fn);
 //safe_print("After 1");
         // origin_fn_toString_async(fn)
         //   .then((result) => {
@@ -961,7 +972,7 @@ class ConcolicValue {
         fn_str = origin_obj_toString.call(fn);
       }
 //return false;
-
+//safe_print(fn_str);
       var res = origin_regexp_test.call(/^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*{\s*\[native code\]\s*}\s*$/i, fn_str);
 		return res;
       //if (origin_str_includes.call(fn_str, ' [native code]')) {
@@ -975,14 +986,14 @@ class ConcolicValue {
 
     var isAnyConcolicValue;
 
-    function concretizeRecursive(obj, depth, obj_dict, offset) {
+    function concretizeRecursive(obj, depth, obj_dict, offset, depth) {
       //if (obj === undefined || typeof obj !== 'object' || obj_dict.includes(obj))
        // return obj;
 
       // if (obj_dict.length > 1000) {
       // 	debugger;
       // }
-      // safe_print('concretizeRecursive depth: ', depth);
+       safe_print('concretizeRecursive depth: ' + depth);
 //if (offset === 'getOwnPropertyDescriptor') safe_print("one " + depth);
       if (origin_array_isArray(obj) || isArguments(obj)) {
 //if (offset === 'getOwnPropertyDescriptor') safe_print("two" + depth);
@@ -1170,149 +1181,174 @@ asdfsfd;
     }
 */
 
-	function captureSymbol(base, offset, val)
+	function captureSymbol(base, offset, val, isFunction)
    {  if (typeof window === 'undefined')
         return null;
-      else if (base === window.screen && offset === 'width') {
+      else if (!isFunction && base === window.screen && offset === 'width') {
         if (JALANGI_READ) safe_print("JALANGI_READ: screen.width");
-        symbol_dict['window_screen_width'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_screen_width', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_screen_width');
-      } else if (base === window.screen && offset === 'height') {
+      } else if (!isFunction && base === window.screen && offset === 'height') {
         if (JALANGI_READ) safe_print("JALANGI_READ: screen.height");
-        symbol_dict['window_screen_height'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_screen_height', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_screen_height');
-      } else if (base === window.screen && offset === 'availWidth') {
+      } else if (!isFunction && base === window.screen && offset === 'availWidth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: screen.availWidth");
-        symbol_dict['window_screen_availWidth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_screen_availWidth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_screen_availWidth');
-      } else if (base === window.screen && offset === 'availHeight') {
+      } else if (!isFunction && base === window.screen && offset === 'availHeight') {
         if (JALANGI_READ) safe_print("JALANGI_READ: screen.availHeight");
-        symbol_dict['window_screen_availHeight'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_screen_availHeight', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_screen_availHeight');
-      } else if (base === window.screen && offset === 'colorDepth') {
+      } else if (!isFunction && base === window.screen && offset === 'colorDepth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: screen.colorDepth");
-        symbol_dict['window_screen_colorDepth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_screen_colorDepth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_screen_colorDepth');
-      } else if (base === window.screen && offset === 'pixelDepth') {
+      } else if (!isFunction && base === window.screen && offset === 'pixelDepth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: screen.pixelDepth");
-        symbol_dict['window_screen_pixelDepth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_screen_pixelDepth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_screen_pixelDepth');
-      } else if (base === window.navigator && offset === 'userAgent') {
+      } else if (!isFunction && base === window.navigator && offset === 'userAgent') {
         if (JALANGI_READ) safe_print("JALANGI_READ: navigator.userAgent");
-        symbol_dict['window_navigator_userAgent'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_navigator_userAgent', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_navigator_userAgent');
-      } else if (base === window.navigator && offset === 'platform') {
+      } else if (!isFunction && base === window.navigator && offset === 'platform') {
         if (JALANGI_READ) safe_print("JALANGI_READ: navigator.platform");
-        symbol_dict['window_navigator_platform'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_navigator_platform', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_navigator_platform');
-      } else if (base === window.document && offset === 'cookie') {
+      } else if (!isFunction && base === window.document && offset === 'cookie') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.cookie");
-        symbol_dict['window_document_cookie'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_cookie', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_cookie');
-      } else if (base === window.document && offset === 'referrer') {
+      } else if (!isFunction && base === window.document && offset === 'referrer') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.referrer");
-        symbol_dict['window_document_referrer'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_referrer', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_referrer');
-      } else if (base === window.document && offset === 'lastModified') {
+      } else if (!isFunction && base === window.document && offset === 'lastModified') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.lastModified");
-        symbol_dict['window_document_lastModified'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_lastModified', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_lastModified');
-      } else if (base === window.document.documentElement && offset === 'offsetWidth') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'offsetWidth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.offsetWidth");
-        symbol_dict['window_document_documentElement_offsetWidth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_offsetWidth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_offsetWidth');
-      } else if (base === window.document.documentElement && offset === 'offsetHeight') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'offsetHeight') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.offsetHeight");
-        symbol_dict['window_document_documentElement_offsetHeight'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_offsetHeight', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_offsetHeight');
-      } else if (base === window.document.documentElement && offset === 'offsetLeft') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'offsetLeft') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.offsetLeft");
-        symbol_dict['window_document_documentElement_offsetLeft'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_offsetLeft', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_offsetLeft');
-      } else if (base === window.document.documentElement && offset === 'offsetTop') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'offsetTop') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.offsetTop");
-        symbol_dict['window_document_documentElement_offsetTop'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_offsetTop', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_offsetTop');
-      } else if (base === window.document.documentElement && offset === 'scrollWidth') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'scrollWidth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.scrollWidth");
-        symbol_dict['window_document_documentElement_scrollWidth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_scrollWidth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_scrollWidth');
-      } else if (base === window.document.documentElement && offset === 'scrollHeight') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'scrollHeight') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.scrollHeight");
-        symbol_dict['window_document_documentElement_scrollHeight'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_scrollHeight', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_scrollHeight');
-      } else if (base === window.document.documentElement && offset === 'scrollLeft') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'scrollLeft') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.scrollLeft");
-        symbol_dict['window_document_documentElement_scrollLeft'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_scrollLeft', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_scrollLeft');
-      } else if (base === window.document.documentElement && offset === 'scrollTop') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'scrollTop') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.scrollTop");
-        symbol_dict['window_document_documentElement_scrollTop'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_scrollTop', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_scrollTop');
-      } else if (base === window.document.documentElement && offset === 'clientWidth') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'clientWidth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.clientWidth");
-        symbol_dict['window_document_documentElement_clientWidth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_clientWidth', {enumerable: false, writable: true, value: val});
         return new ConcolicValue(val, 'window_document_documentElement_clientWidth');
-      } else if (base === window.document.documentElement && offset === 'clientHeight') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'clientHeight') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.clientHeight");
-        symbol_dict['window_document_documentElement_clientHeight'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_clientHeight', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_clientHeight');
-      } else if (base === window.document.documentElement && offset === 'clientLeft') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'clientLeft') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.clientLeft");
-        symbol_dict['window_document_documentElement_clientLeft'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_clientLeft', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_clientLeft');
-      } else if (base === window.document.documentElement && offset === 'clientTop') {
+      } else if (!isFunction && base === window.document.documentElement && offset === 'clientTop') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.documentElement.clientTop");
-        symbol_dict['window_document_documentElement_clientTop'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_document_documentElement_clientTop', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_documentElement_clientTop');
-      } else if (window.document.body && base === window.document.body && offset === 'offsetWidth') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'offsetWidth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.offsetWidth");
-        symbol_dict['window_document_body_offsetWidth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_offsetWidth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_offsetWidth');
-      } else if (window.document.body && base === window.document.body && offset === 'offsetHeight') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'offsetHeight') {
         //safe_print("JALANGI_READ: document.body.offsetHeight");
-        symbol_dict['window_document_body_offsetHeight'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_offsetHeight', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_offsetHeight');
-      } else if (window.document.body && base === window.document.body && offset === 'offsetLeft') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'offsetLeft') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.offsetLeft");
-        symbol_dict['window_document_body_offsetLeft'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_offsetLeft', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_offsetLeft');
-      } else if (window.document.body && base === window.document.body && offset === 'offsetTop') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'offsetTop') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.offsetTop");
-        symbol_dict['window_document_body_offsetTop'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_offsetTop', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_offsetTop');
-      } else if (window.document.body && base === window.document.body && offset === 'scrollWidth') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'scrollWidth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.scrollWidth");
-        symbol_dict['window_document_body_scrollWidth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_scrollWidth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_scrollWidth');
-      } else if (window.document.body && base === window.document.body && offset === 'scrollHeight') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'scrollHeight') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.scrollHeight");
-        symbol_dict['window_document_body_scrollHeight'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_scrollHeight', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_scrollHeight');
-      } else if (window.document.body && base === window.document.body && offset === 'scrollLeft') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'scrollLeft') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.scrollLeft");
-        symbol_dict['window_document_body_scrollLeft'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_scrollLeft', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_scrollLeft');
-      } else if (window.document.body && base === window.document.body && offset === 'scrollTop') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'scrollTop') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.scrollTop");
-        symbol_dict['window_document_body_scrollTop'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_scrollTop', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_scrollTop');
-      } else if (window.document.body && base === window.document.body && offset === 'clientWidth') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'clientWidth') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.clientWidth");
-        symbol_dict['window_document_body_clientWidth'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_clientWidth', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_clientWidth');
-      } else if (window.document.body && base === window.document.body && offset === 'clientHeight') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'clientHeight') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.clientHeight");
-        symbol_dict['window_document_body_clientHeight'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_clientHeight', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_clientHeight');
-      } else if (window.document.body && base === window.document.body && offset === 'clientLeft') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'clientLeft') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.clientLeft");
-        symbol_dict['window_document_body_clientLeft'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_clientLeft', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_clientLeft');
-      } else if (window.document.body && base === window.document.body && offset === 'clientTop') {
+      } else if (!isFunction && window.document.body && base === window.document.body && offset === 'clientTop') {
         if (JALANGI_READ) safe_print("JALANGI_READ: document.body.clientTop");
-        symbol_dict['window_document_body_clientTop'] = val;
+        origin_obj_defineProperty(symbol_dict, 'window_body_clientTop', { enumerable: false, writable: true, value: val });
         return new ConcolicValue(val, 'window_document_body_clientTop');
+      } else if (isFunction && window.Math === base && offset === 'random') {
+        if (!('window_Math_random' in symbol_dict))
+				origin_obj_defineProperty(symbol_dict, 'window_Math_random', { enumerable: false, writable: true, value: [] });
+        if (JALANGI_READ) safe_print("JALANGI_READ: Math.random");
+        origin_array_push.call(origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_Math_random').value, val);
+        return new ConcolicValue(val, 'window_Math_random_' + origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_Math_random').value.length);
+      } else if (isFunction && window.Date === base && offset === 'now') {
+        if (!('window_Date_now' in symbol_dict))
+				origin_obj_defineProperty(symbol_dict, 'window_Date_now', { enumerable: false, writable: true, value: [] });
+        if (JALANGI_READ) safe_print("JALANGI_READ: Date.now");
+        origin_array_push.call(origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_Date_now').value, val);
+        //origin_array_push.call(symbol_dict['window_Date_now'], val);
+        return new ConcolicValue(val, 'window_Date_now_' + origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_Date_now').value.length);
+      } else if (isFunction && window.crypto === base && offset === 'getRandomValues') {
+        if (!('window_crypto_getRandomValues' in symbol_dict))
+				origin_obj_defineProperty(symbol_dict, 'window_crypto_getRandomValues', { enumerable: false, writable: true, value: [] });
+        if (JALANGI_READ) safe_print("JALANGI_READ: crypto.getRandomValues");
+        origin_array_push.call(origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_crypto_getRandomValues').value, val);
+        return new ConcolicValue(val, 'window_crypto_getRandomValues_' + origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_crypto_getRandomValues').value.length);
+      } else if (isFunction && window.Date === base && offset === 'getTime') {
+        if (!('window_Date_getTime' in symbol_dict))
+				origin_obj_defineProperty(symbol_dict, 'window_Date_getTime', { enumerable: false, writable: true, value: [] });
+        if (JALANGI_READ) safe_print("JALANGI_READ: Date.getTime");
+        origin_array_push.call(origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_Date_getTime').value, val);
+        return new ConcolicValue(val, 'window_Date_getTime_' + origin_obj_getOwnPropertyDescriptor(symbol_dict, 'window_Date_getTime').value.length);
       } else {	//safe_print("Offset Check")
 
         //safe_print("JALANGI_READ: document.body.clientTop");
@@ -1408,8 +1444,9 @@ asdfsfd;
       var concrete_result;
       if (typeof result === 'object' && result instanceof ConcolicValue) {
         concrete_result = result.getConcrete();
-        safe_print("JALANGI_PC: (depth=" + pc_depth + ") (result=" + concrete_result + ") " + result.getSymbolic());
+        safe_print("JALANGI_PC: (parent= " + parent_pc_loc + " ) (result= " + concrete_result + " ) " + "(loc= " + (JALANGI_$.sid + "-" + iid)  + " ) " + result.getSymbolic());
         pc_depth++;
+			parent_pc_loc = JALANGI_$.sid + "-" + iid
       } else
         concrete_result = result;
 
@@ -1431,8 +1468,10 @@ asdfsfd;
         total_lines++;
       }
 		updateLineInfo(iid, line, "endExpression()");
+//NativeOkCheck();
     };
     this.getField = function (iid, base, offset, val, isComputed, isOpAssign, isMethodCall) {
+      loc = JALANGI_$.iidToLocation(JALANGI_$.sid, iid);
       loc = JALANGI_$.iidToLocation(JALANGI_$.sid, iid);
       if (DEBUG) {
         safe_print("<getField>")
@@ -1446,9 +1485,14 @@ asdfsfd;
 //        safe_print("isOpAssign: " + isOpAssign);
 //        safe_print("isMethodCall: " + isMethodCall);
       }
-		var ret = captureSymbol(base, offset, val);
-		if (ret)
-			val = ret;
+		var ret = captureSymbol(base, offset, val, false);
+
+
+		/* INCLUDE THIS LATER */
+		// if (ret != null)
+			// val = ret;
+
+
 
       //safe_print(symbol_dict);
       if (DEBUG) 
@@ -1457,6 +1501,125 @@ asdfsfd;
 //safe_print(val);
       return {result: val}
     };
+	var client_function_prototype_toString;
+	var client_object_prototype_toString;
+	var client_symbol_prototype_toString;
+
+//	function INTERCEPT_Function_prototype_toString () {
+//	
+//		safe_print("INTERCEPT_Function_prototype_toString() called");
+//		(new Error()).stack[1];
+//		//Error.stackTraceLimit = 1000;
+//
+//	}
+	function NativeOkCheck()
+	{	
+      if (result = !isNativeFn(origin_obj_hasOwnProperty))
+			safe_print("origin_obj_hasOwnProperty ERROR!!!");
+      if (result = !isNativeFn(origin_obj_defineProperty))
+			safe_print("origin_obj_defineProperty ERROR!!!");
+      if (result = !isNativeFn(origin_obj_getOwnPropertyDescriptor))
+			safe_print("origin_obj_getOwnPropertyDescriptor ERROR!!!");
+      if (result = !isNativeFn(origin_obj_values))
+			safe_print("origin_obj_values ERROR!!!");
+      if (result = !isNativeFn(origin_obj_toString))
+			safe_print("origin_obj_toString ERROR!!!");
+//      if (result = !isNativeFn(origin_obj_toString_call))
+//			safe_print("origin_obj_toString_call ERROR!!!");
+      if (result = !isNativeFn(origin_obj_keys))
+			safe_print("origin_obj_keys ERROR!!!");
+      if (result = !isNativeFn(origin_array_includes))
+			safe_print("origin_array_includes ERROR!!!");
+      if (result = !isNativeFn(origin_array_push))
+			safe_print("origin_array_push ERROR!!!");
+      if (result = !isNativeFn(origin_array_pop))
+			safe_print("origin_array_pop ERROR!!!");
+      if (result = !isNativeFn(origin_array_slice))
+			safe_print("origin_array_slice ERROR!!!");
+      if (result = !isNativeFn(origin_array_join))
+			safe_print("origin_array_join ERROR!!!");
+      if (result = !isNativeFn(origin_array_forEach))
+			safe_print("origin_array_forEach ERROR!!!");
+      if (result = !isNativeFn(origin_array_map))
+			safe_print("origin_array_map ERROR!!!");
+      if (result = !isNativeFn(origin_array_concat))
+			safe_print("origin_array_concat ERROR!!!");
+      if (result = !isNativeFn(origin_array_shift))
+			safe_print("origin_array_shift ERROR!!!");
+      if (result = !isNativeFn(origin_array_unshift))
+			safe_print("origin_array_unshift ERROR!!!");
+      if (result = !isNativeFn(origin_array_isArray))
+			safe_print("origin_array_isArray ERROR!!!");
+      if (result = !isNativeFn(origin_array_reverse))
+			safe_print("origin_array_reverse ERROR!!!");
+      if (result = !isNativeFn(origin_array_splice))
+			safe_print("origin_array_splice ERROR!!!");
+      if (result = !isNativeFn(origin_array_find))
+			safe_print("origin_array_find ERROR!!!");
+      
+      if (result = !isNativeFn(origin_fn_apply))
+			safe_print("origin_fn_apply ERROR!!!");
+      if (result = !isNativeFn(origin_fn_toString))
+			safe_print("origin_fn_toString ERROR!!!");
+//      if (result = !isNativeFn(origin_fn_toString_call))
+//			safe_print("origin_fn_toString_call ERROR!!!");
+      if (result = !isNativeFn(origin_symbol_toString))
+			safe_print("origin_symbol_toString ERROR!!!");
+      if (result = !isNativeFn(origin_str_search))
+			safe_print("origin_str_search ERROR!!!");
+      if (result = !isNativeFn(origin_str_includes))
+			safe_print("origin_str_includes ERROR!!!");
+      if (result = !isNativeFn(origin_str_indexOf))
+			safe_print("origin_str_indexOf ERROR!!!");
+      if (result = !isNativeFn(origin_str_split))
+			safe_print("origin_str_split ERROR!!!");
+      if (result = !isNativeFn(origin_str_substring))
+			safe_print("origin_str_substring ERROR!!!");
+      if (result = !isNativeFn(origin_str_replace))
+			safe_print("origin_str_replace ERROR!!!");
+      
+      if (result = !isNativeFn(origin_json_stringify))
+			safe_print("origin_json_stringify ERROR!!!");
+      if (result = !isNativeFn(origin_json_parse))
+			safe_print("origin_json_parse ERROR!!!");
+      
+      if (result = !isNativeFn(origin_regexp_exec))
+			safe_print("origin_regexp_exec ERROR!!!");
+      if (result = !isNativeFn(origin_regexp_test))
+			safe_print("origin_regexp_test ERROR!!!");
+      if (result = !isNativeFn(origin_console_log))
+			safe_print("origin_console_log ERROR!!!");
+      
+/*      if (result = !isNativeFn(origin_date))
+			safe_print("origin_date ERROR!!!");
+      if (result = !isNativeFn(origin_Date_now))
+			safe_print("origin_Date_now ERROR!!!");
+      if (result = !isNativeFn(origin_Date_UTC))
+			safe_print("origin_Date_UTC ERROR!!!");
+      if (result = !isNativeFn(origin_Date_parse))
+			safe_print("origin_Date_parse ERROR!!!");
+      if (result = !isNativeFn(origin_Date_getTime))
+			safe_print("origin_Date_getTime ERROR!!!");
+      if (result = !isNativeFn(origin_Date_setTime))
+			safe_print("origin_Date_setTime ERROR!!!");
+      if (result = !isNativeFn(origin_Date_toGMTString))
+			safe_print("origin_Date_toGMTString ERROR!!!");
+
+      if (result = !isNativeFn(origin_Math))
+	 		safe_print("origin_Math ERROR!!!");
+      if (result = !isNativeFn(origin_Math_random))
+			safe_print("origin_Math_random ERROR!!!");
+*/
+		if (result)
+		{	//safe_print(origin_console_log);
+			//safe_print(origin_fn_toString.call(origin_console_log));
+			//safe_print(origin_fn_toString.call(origin_Math_random));
+			//safe_print(origin_fn_toString.call(origin_obj_values));
+			//safe_print(origin_fn_toString.call(origin_json_stringify));
+			throw Error;
+		}
+
+	}
 
     this.putFieldPre = function (iid, base, offset, val, isComputed, isOpAssign) {
       if (DEBUG) {
@@ -1470,12 +1633,52 @@ asdfsfd;
 //        safe_print("isComputed: " + isComputed)
 //        safe_print("isOpAssign: " + isOpAssign)
       }
+
       if (typeof offset === 'object' && offset instanceof ConcolicValue) {
         offset = offset.getConcrete();
       }
       if (typeof val === 'object' && val instanceof ConcolicValue) {
         val = val.getConcrete();
       }
+
+//if (offset === 'toString' || offset == 'call' || offset == 'stringify')
+
+//var desc = origin_obj_getOwnPropertyDescriptor(base, offset);
+
+//if (desc && isNativeFn(desc.value))
+//{	
+//	safe_print("HACK DETECTED");
+//        safe_print("base:")
+//        safe_print(base)
+//        safe_print("offset: " + offset);
+//        safe_print(desc.value ? desc.value.name : 'undefined...')
+//        safe_print("val:")
+//        safe_print(val)
+/*	
+			if (offset === Symbol.prototype.toString)
+			{	safe_print("Symbol.prototype.toString");
+			}
+			else if (offset === Object.prototype.toString)
+			{	safe_print("Object.prototype.toString");
+			}
+			else if (offset === Number.prototype.toString)
+			{	safe_print("Number.prototype.toString");
+			}
+			else if (offset === Function.prototype.toString)
+			{	safe_print("Function.prototype.toString");
+				client_function_prototype_toString = val;
+				//val = INTERCEPT_Function_prototype_toString;
+			}	
+			else if (offset === JSON.stringify)
+			{	safe_print("JSON.stringify");
+				client_json_stringify = val;
+				//val = INTERCEPT_Function_prototype_toString;
+			}
+*/
+	//val = desc.value;	
+//}
+
+
       if (DEBUG) {
 //        safe_print("Final offset: ");
 //        safe_print(offset)
@@ -1505,12 +1708,12 @@ asdfsfd;
     this.write = function (iid, name, val, lhs, isGlobal, isScriptLocal, withBase) {
       if (DEBUG) {
         safe_print("<write>")
-//        safe_print("name: " + name)
-//        safe_print("val:")
-//        safe_print(val)
-//        safe_print("(typeof: " + (!val ? 'NONE' : (typeof val === 'object' ? 'object - ' + val.constructor.name : typeof val)) + ")")
-//        safe_print("lhs:")
-//        safe_print(lhs)
+        safe_print("name: " + name)
+        safe_print("val:")
+        safe_print(val)
+        safe_print("(typeof: " + (!val ? 'NONE' : (typeof val === 'object' ? 'object - ' + val.constructor.name : typeof val)) + ")")
+        safe_print("lhs:")
+        safe_print(lhs)
 //        safe_print("isGlobal: " + isGlobal)
 //        safe_print("isScriptLocal: " + isScriptLocal)
         safe_print("<write> End")
@@ -1531,11 +1734,19 @@ asdfsfd;
         safe_print("val")
         safe_print(val)
       }
-
+      line = JALANGI_$.iidToLine(JALANGI_$.sid, iid);
+      loc = JALANGI_$.iidToLocation(JALANGI_$.sid, iid);
+		updateLineInfo(iid, line, "read()");
+//safe_print(withBase);
 		if (withBase)
-			captureSymbol(withBase, name, val);
+			ret = captureSymbol(withBase, name, val, false);
+
+		/* INCLUDE THIS LATER */
+		//	if (ret)
+		//		val = ret;
 
 
+		/* REMOVE THIS LATER */
       if (typeof val === 'object' && val instanceof ConcolicValue) {
         val = val.getConcrete();
       }
@@ -1558,6 +1769,7 @@ asdfsfd;
 //        safe_print("isMethodCall: " + isMethodCall)
       }
 
+		/* REMOVE THIS LATER */
       if (typeof offset === 'object' && offset instanceof ConcolicValue) {
         offset = offset.getConcrete();
       }
@@ -1578,26 +1790,35 @@ asdfsfd;
 		updateLineInfo(iid, line, "invokeFunPre()");
       if (DEBUG) {
         safe_print("<invokeFunPre> " + offset + " id=" + invokeFun_id)
-//        safe_print("base:")
-//        safe_print(base)
-//        safe_print("offset: ");
-//        safe_print(offset)
+        safe_print("base:")
+        safe_print(base)
+//        safe_print(base === JSON)
+//        safe_print(base === Object)
+        safe_print("offset: ");
+        safe_print(offset)
 //        safe_print("f:")
 //        safe_print(f)
-//        safe_print("args:")
-//        safe_print(args)
+        safe_print("args:")
+        safe_print(args)
 //			safe_print("invokeFun_id: " + invokeFun_id);
       }
-
+//safe_print("<invokeFunPre> " + offset + " id=" + invokeFun_id)
+//return;
+//safe_print("One");
       if (typeof base === 'object' && base instanceof ConcolicValue) {	
 			// Example: var a = navigator.userAgent; a.toString(); -> must concretize 'a'
 			//safe_print("Instanceof: base");
+//safe_print("Two");
         f = base.getConcrete()[offset]
+//safe_print("Three");
         base = base.getConcrete();
+//safe_print("Four");
 			if (f === undefined)
+			{
 				safe_print("[WARNING] The base function " + offset + " does not exist for the concretized ConcolicValue");
 				safe_print("base:");
 				safe_print(base);
+			}
       }
 
       if (typeof f === 'object' && f instanceof ConcolicValue) {	
@@ -1615,7 +1836,9 @@ asdfsfd;
 //        safe_print("isModeledFn: " + isModeledFn(f));
 //			safe_print(invokeFun_id);
       }
-      if (isNativeFn(f) && !isModeledFn(f) && no_dom_native_fn_str(f) !== undefined /*&& isArgContainsSymbol(args)*/) {
+//safe_print("isNativeFn(): " + isNativeFn(f) + ", isModeledFn(): " + isModeledFn(f));
+      if (0 && (isNativeFn(f) || f in hacked_native_fn_array /*&& !isModeledFn(f)*/ /*&& no_dom_native_fn_str(f) !== undefined*/ /*&& isArgContainsSymbol(args)*/)) {
+//safe_print("Concretize!!");
         /* 네이티브 함수가 모델링되지 않았으며, 실시간 DOM에 관련된 함수가 아니라서
                     나중에 기호식을 따로 재실행하면 똑같은 값을 얻을 수 있는 경우임.
                     이 경우에는 PC tree에서 새 경로 탐색으로 이어지는 조건분기점의 분석에
@@ -1639,33 +1862,66 @@ asdfsfd;
         invokeFun_str = base.constructor.name + "." + str_offset + '(';
         for (var i = 0; i < args.length; i++) {
           var arg = args[i];
-
-          if (arg instanceof ConcolicValue)
-            arg_str = arg.getSymbolic();
+          if (typeof arg === 'undefined')
+          { //safe_print("Nine 1"); 
+				arg_str = 'null';
+			}
+          else if (typeof arg === 'number' || typeof arg === 'bigint' || typeof arg === 'boolean')
+          { //safe_print("Nine 1"); 
+				arg_str = arg;
+			}
+          else if (arg instanceof ConcolicValue)
+          { //safe_print("Nine 1"); 
+				arg_str = arg.getSymbolic();
+			}
           else if (typeof window !== 'undefined' && arg === window)
-            arg_str = 'window';
+          {	//safe_print("Nine 2");	
+				arg_str = 'window';
+			}
           else if (typeof window !== 'undefined' && arg === document)
-            arg_str = 'document';
-          else if (typeof arg === 'object')
+          { //safe_print("Nine 3"); 
+				arg_str = 'document';
+			}
+          else if (typeof window !== 'undefined' && arg === window.navigator)
+          { //safe_print("Nine 3"); 
+				arg_str = 'nagivator';
+			}
+          else if (typeof arg === 'object')  // either an array or a json object
           /* !!!이 부분 구현 필요 !!!
                           객체 안을 재귀적으로 들어가서 stringify해야 하며
                           ConcolicValue를 만날 때마다 getSymbolic을 불러야 함  */
-            arg_str = '';
+          {  //safe_print("Nine 4");
+					arg_str = '';
+					arg_str = arg;//origin_json_stringify(arg);
+			}
           //arg_str = origin_json_stringify(arg);
           else if (typeof arg === 'function')
-            arg_str = origin_obj_toString.call(arg);
+          { //safe_print("Nine 5"); 
+				arg_str = origin_fn_toString.call(arg);
+			}
           else if (typeof arg === 'symbol')
-            arg_str = origin_symbol_toString.call(arg);
+          {  //safe_print("Nine 6");
+				arg_str = origin_symbol_toString.call(arg);
+			}
           else if (typeof arg === 'string')
-            arg_str = '"' + arg + '"';
-          else
-            arg_str = origin_json_stringify(arg);
+          {	//safe_print("Nine 7");  
+				arg_str = '"' + arg + '"';
+			}
+			else
+          { //safe_print("Nine 8"); 
+            //safe_print(origin_json_stringify === JSON.stringify); 
+				//arg_str = origin_json_stringify(arg);
+				//arg_str = safe_json_stringify(arg);
+				arg_str = arg;
+           safe_print("Nine 8 Done"); 
+			}
           invokeFun_str += arg_str;
 
           if (i + 1 != args.length)
             invokeFun_str += ",";
         }
         invokeFun_str += ')'
+//safe_print("Ten");
 
         obj_dict = [];
         isAnyConcolicValue = false;
@@ -1673,9 +1929,15 @@ asdfsfd;
 			if (DEBUG) 
 				safe_print("Concretizing...");
 
-//safe_print("Concretize Start");
-        concretizeRecursive(args, 0, obj_dict, offset);
-//safe_print("Concretize End");
+safe_print("Concretize Start");
+        concretizeRecursive(args, 0, obj_dict, offset, 1);
+safe_print("Concretize End");
+
+//			if (DEBUG) {
+//			 	safe_print("Concretized values");
+//				for (var i = 0; i < args.length; i++)
+//					safe_print(args[i]);
+//			}
         if (isAnyConcolicValue)
         {  native_invokeFun_dict[invokeFun_id] = invokeFun_str;
 				//if (invokeFun_id == 1019)
@@ -1692,12 +1954,17 @@ asdfsfd;
 //				}
 			}
       }
+//if (offset === 'fetch')
+//{safe_print("Fetch");
+//safe_print(args[0]);
+//}
       if (DEBUG) {
 //		if (offset === 'apply') { 
 //        safe_print("arguments Final:")
 //        safe_print(args)
         safe_print("<invokeFunPre> End")
       }
+//safe_print("End invokeFunPre");
       //Error.stackTraceLimit = 500;
       // if (typeof window != 'undefined' && f === window.setTimeout)
       // {
@@ -1720,65 +1987,27 @@ asdfsfd;
 //        safe_print("result:")
 //        safe_print(result)
       }
-      if (typeof window === 'undefined')
-        ;
-      else if (base === Math && f === Math.random) // number
-      {
-        if (JALANGI_READ) safe_print("JALANGI_READ: Math.random()")
-        //safe_print("Math Value: " + result);
-        if (!('window_Math_random' in symbol_dict))
-          symbol_dict['window_Math_random'] = [];
-        origin_array_push.call(symbol_dict['window_Math_random'], result);
-        result = new ConcolicValue(result, 'Math_random_' + symbol_dict['window_Math_random'].length);
-      } else if (base === window.Date && f === window.Date.now) // number
-      {
-        if (JALANGI_READ) safe_print("JALANGI_READ: Date.now()");
-        //safe_print("Date.now() Value: " + result);
-        if (!('window_Date_now' in symbol_dict))
-          symbol_dict['window_Date_now'] = [];
-        origin_array_push.call(symbol_dict['window_Date_now'], result);
-        result = new ConcolicValue(result, 'window_Date_now_' + symbol_dict['window_Date_now'].length);
-      } else if (base === window.crypto && f === window.crypto.getRandomValues) // UintArray
-      {
-        if (JALANGI_READ) safe_print("JALANGI_READ: crypto.getRandomValues (function)");
-        if (!('window_crypto_getRandomValues' in symbol_dict))
-          symbol_dict['window_crypto_getRandomValues'] = [];
-        origin_array_push.call(symbol_dict['window_crypto_getRandomValues'], result);
-        result = new ConcolicValue(result, 'window_crypto_getRandomValues_' + symbol_dict['window_crypto_getRandomValues'].length);
-      }
-      /*else if (base === window && f === window.Date)
-            {	//updateDict(iid, "endExpression()", line);
-                if (!('window_Date' in symbol_dict))
-                {	symbol_dict['window_Date'] = [];
-                    safe_print("JALANGI_READ: new Date()");
-                }
-                symbol_dict['window_Date'].push(result);
-                //val = new ConcolicValue(val, 'window_Date_' + symbol_dict['window_Date_'].length);
-            }*/
+	
+		var ret = captureSymbol(base, offset, result, true);
 
-      /**************** Date.prototype.* **********************/
-      else if (f === window.Date.prototype.getTime || window.Date2 && f === window.Date2.prototype.getTime) // number
-      {	//updateDict(iid, "endExpression()", line);
-        //safe_print("JALANGI_READ: Date.getTime()");
-        if ('window_Date_getTime' in symbol_dict && origin_array_includes.call(symbol_dict['window_Date_getTime'], base)) {
-          if (!('window_Date_getTime' in symbol_dict)) {
-            symbol_dict['window_Date_getTime'] = [];
-            if (JALANGI_READ) safe_print("JALANGI_READ: Date.getTime()");
-          }
-          origin_array_push.call(symbol_dict['window_Date_getTime'], result);
-          //safe_print("JALANGI_READ: Date.getTime() FOUND");
-          //safe_print(base)
-          result = new ConcolicValue(result, 'window_Date_getTime_' + symbol_dict['window_Date_'].length);
-        }
-      } else if (invokeFun_id in native_invokeFun_dict) // return value of a native call whose arguments contained a symbol
+		if (invokeFun_id in native_invokeFun_dict && no_dom_native_fn_str(f) !== undefined) // return value of a native call whose arguments contained a symbol
       {	/* 이전 invokeFunPre에서 네이티브 함수의 기호식을 생성했을 경우 그것을 불러들여서 사용하기.
 					  현 코드 구조라면 async에 의해서 같은 코드가 여러 코드들에 의해 중복 실행되더라도
 						race condition이 발생되지 않을 것임.
 					*/
-        result = new ConcolicValue(result, native_invokeFun_dict[invokeFun_id]);
+			ret.symbolic = native_invokeFun_dict[invokeFun_id];
+
+
+
 //		safe_print("Find Dictionary " + invokeFun_id);
 //			safe_print(native_invokeFun_dict);
       }
+
+		/* INCLUDE THIS LATER */
+		// if (ret != null)
+			// result = ret;
+
+
       if (DEBUG) 
 			safe_print("<invokeFun> End")
 		
@@ -1854,7 +2083,8 @@ asdfsfd;
           //safe_print(left_right[i]);
           origin_array_push.call(concrete_left_right, left_right[i]);
           if (typeof left_right[i] === 'object')
-            origin_array_push.call(symbolic_left_right, origin_json_stringify(left_right[i]));
+            //origin_array_push.call(symbolic_left_right, origin_json_stringify(left_right[i]));
+            origin_array_push.call(symbolic_left_right, safe_json_stringify(left_right[i]));
           else if (typeof left_right[i] === 'function')
             origin_array_push.call(symbolic_left_right, origin_obj_toString.call(left_right[i]));
           else if (typeof left_right[i] === 'symbol')

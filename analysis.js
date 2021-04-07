@@ -54,7 +54,9 @@ if (typeof JALANGI_$ === 'undefined') {
     if (base === null || base === undefined) {
       return undefined;
     }
-    return base[prop];
+	var descriptor = origin_obj_getOwnPropertyDescriptor(base, prop);
+   return descriptor ? descriptor.value : undefined;
+//    return base[prop];
   }
 
   function decodeBitPattern(i, len) {
@@ -83,7 +85,9 @@ if (typeof JALANGI_$ === 'undefined') {
     origin_array_push.call(sidStack, sandbox.sid);
     sandbox.sid = sidCounter = sidCounter + 1;
     if (!sandbox.smap) sandbox.smap = {};
-    sandbox.smap[sandbox.sid] = sandbox.iids;
+	origin_obj_defineProperty(sandbox.smap, sandbox.sid, 
+		{ enumerable: false, writable: true, value: sandbox.iids });
+//    sandbox.smap[sandbox.sid] = sandbox.iids;
   }
 
   function rollBackSid() {
@@ -102,8 +106,14 @@ if (typeof JALANGI_$ === 'undefined') {
           writable: true
         });
       }
-      f[SPECIAL_PROP_SID] = sandbox.sid;
-      f[SPECIAL_PROP_IID] = iid;
+		var descriptor1 = origin_obj_getOwnPropertyDescriptor(f, SPECIAL_PROP_SID);
+		var descriptor2 = origin_obj_getOwnPropertyDescriptor(f, SPECIAL_PROP_IID);
+		descriptor1.value = sandbox.sid;
+		descriptor2.value = iid;
+		origin_obj_defineProperty(f, SPECIAL_PROP_SID,descriptor1); 
+		origin_obj_defineProperty(f, SPECIAL_PROP_IID,descriptor2);
+//      f[SPECIAL_PROP_SID] = sandbox.sid;
+//      f[SPECIAL_PROP_IID] = iid;
     }
   }
 
@@ -195,10 +205,17 @@ safe_print(code)
   function callFun(f, base, args, isConstructor, iid, offset, withList) {
     var result;
     pushSwitchKey();
-
+//safe_print("callFun");
 	 var new_base = findWithObjectByName(offset, withList);
 		if (new_base)
 			base = new_base;
+//{	safe_print("Found!!");
+//safe_print(offset)
+//	for (var i = 0; i < args.length; i++)
+//		safe_print(args[i]);
+//}
+//if (f === Function.prototype.toString || f === Object.prototype.toString || f === Symbol.prototype.toString || f === Number.prototype.toString)
+//	safe_print("toString!!! IN");
 
     try {
       if (f === EVAL_ORG) {
@@ -217,6 +234,10 @@ safe_print(code)
         result = origin_fn_apply.call(f, base, args);
         //result = Function.prototype.apply(f, base, args);
       }
+
+//if (f === Function.prototype.toString || f === Object.prototype.toString || f === Symbol.prototype.toString || f === Number.prototype.toString)
+//	safe_print("toString!!! OUT");
+
       return result;
     } finally {
       popSwitchKey();
@@ -441,11 +462,11 @@ safe_print(code)
     var aret;
     var bFlags = decodeBitPattern(flags, 2); // [isGlobal, isScriptLocal]
 
-	 var base;
-	// = findWithObjectByName(name, withList);
+	 var with_base;
+	with_base = findWithObjectByName(name, withList);
 
     if (sandbox.analysis && sandbox.analysis.read) {
-      aret = sandbox.analysis.read(iid, name, val, bFlags[0], bFlags[1], base);
+      aret = sandbox.analysis.read(iid, name, val, bFlags[0], bFlags[1], with_base);
       // if (typeof window != 'undefined' && val === Date) {
       //     PrintInfo(iid, "endExpression()", line);
       //     safe_print("JALANGI_READ " + this.count + ": Date.now (new Date())");
@@ -465,11 +486,11 @@ safe_print(code)
     var bFlags = decodeBitPattern(flags, 3); //[isGlobal, isScriptLocal, isDeclaration]
     var aret;
 
-	 var base;
-	// = findWithObjectByName(name, withList);
+	 var with_base;
+	with_base = findWithObjectByName(name, withList);
 
     if (sandbox.analysis && sandbox.analysis.write) {
-      aret = sandbox.analysis.write(iid, name, val, lhs, bFlags[0], bFlags[1], base);
+      aret = sandbox.analysis.write(iid, name, val, lhs, bFlags[0], bFlags[1], with_base);
       if (aret) {
         val = aret.result;
       }

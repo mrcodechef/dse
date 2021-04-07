@@ -77,6 +77,8 @@ if (typeof JALANGI_$ === 'undefined') {
   function es6Transform(code) {
     //  safe_print('Transforming');
     //  safe_print('Transforming');
+const jsesc = require('jsesc');
+
     if (typeof (babel_final) !== 'undefined' && !process.env['NO_ES7']) {
       var options = {
         retainLines: true,
@@ -84,7 +86,11 @@ if (typeof JALANGI_$ === 'undefined') {
         sourceType: 'unambiguous',
         sourceMaps: true,
         presets: [ ['@babel/preset-env', 
-							{ "exclude": ["@babel/plugin-transform-function-name"] }
+							{ "exclude": [	"@babel/plugin-transform-function-name", 
+												//'@babel/plugin-transform-unicode-escapes', 
+												//'@babel/plugin-transform-unicode-regex',
+												'@babel/plugin-transform-literals',
+											] }
 						] ],
         plugins: [
           //"@babel/plugin-transform-runtime",
@@ -98,8 +104,7 @@ if (typeof JALANGI_$ === 'undefined') {
               'strictMode': false
             },
           ]
-        ]//,
-			//exclude: ['plugin-transform-function-name']
+        ]
       }
       
       try {
@@ -107,6 +112,10 @@ if (typeof JALANGI_$ === 'undefined') {
         
         if (typeof window === 'undefined') {
           var res = babel_final.transform(code, options).code;
+
+//safe_print("OUTPUT");
+//safe_print(output);
+
           /* remove require() included in the transformed code */
           //var s = new require('stream').Readable();
           //s.push (res);
@@ -753,6 +762,7 @@ safe_print(res);
           }
           internalFunId = getFnIdFromAst(scope.funNodes[node.name]);
         }
+//safe_print(ast);
         ret = replaceInExpr(
           logLitFunName + "(" + RP + "1, " + RP + "2, " + RP + "3," + hasGetterSetter + ", " + internalFunId + ")",
           getIid(),
@@ -1928,7 +1938,7 @@ safe_print("Wrap Script Body");
   function syncDefuns(node, scope, isScript) {
     var ret = [], ident;
     if (!isScript) {
-      if (!Config.INSTR_TRY_CATCH_ARGUMENTS || Config.INSTR_TRY_CATCH_ARGUMENTS(node)) {
+    /*  if (!Config.INSTR_TRY_CATCH_ARGUMENTS || Config.INSTR_TRY_CATCH_ARGUMENTS(node)) {
         if (!Config.INSTR_INIT || Config.INSTR_INIT(node)) {
           ident = createIdentifierAst("arguments");
           ret = origin_array_concat.call(ret, createCallInitAsStatement(node,
@@ -1937,7 +1947,7 @@ safe_print("Wrap Script Body");
             true,
             ident, false, true));
         }
-      }
+      }*/
     }
     if (scope) {
       for (var name in scope.vars) {
@@ -2759,7 +2769,7 @@ safe_print("Wrap Script Body");
 //       safe_print("Type: " + ast.body[i].type); 
         if (ast.body[i].type === 'FunctionDeclaration') {
 ///safe_print("Function Decl Hoisted");
-			safe_print("Hoist Function: " + ast.body[i].id.name);
+//			safe_print("Hoist Function: " + ast.body[i].id.name);
           origin_array_push.call(declarations, ast.body[i]);
           if (newBody.length !== i + 1) {
             //hoisteredFunctions.push (ast.body[i].id.name);
@@ -2783,12 +2793,12 @@ safe_print("Wrap Script Body");
 						if (child.init)
 							child.init = null;
 
-						if (child.id)
-							safe_print("Hoist Variable: " + child.id.name);
-						else
-						{	safe_print("Hoist Variable Null");
-							safe_print(child);
-						}
+//						if (child.id)
+//							safe_print("Hoist Variable: " + child.id.name);
+//						else
+//						{	safe_print("Hoist Variable Null");
+//							safe_print(child);
+//						}
 					  }
 					}
 				 }
@@ -2807,7 +2817,7 @@ safe_print("Wrap Script Body");
 				}
 			}
 		}
-safe_print("Hoist Loop End " + ast.type + " (" + ast.body.length + ")");
+//safe_print("Hoist Loop End " + ast.type + " (" + ast.body.length + ")");
 		//var var_init_length = varInit.length;
       //for (var i = 0; i < var_init_length; i++) {
       //    newBody.push (varInit.pop ());
