@@ -537,7 +537,7 @@ function PostPageload() {
 		local finish_symbol="$(cat cache$k/symbol)"
 		local finish_value="$(cat cache$k/value)"
 		if [[ "$finish_value" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then				
-			./extract-path.sh out$k > "LOG-$symbol-$value-$i".txt
+			./extract-path.sh out$k > "LOG-$finish_symbol-$finish_value-$i".txt
 			if [ $i -eq 0 ]; then
 				touch all_symbols.txt
 				echo "$finish_symbol = $finish_value" >> all_symbols.txt
