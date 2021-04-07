@@ -50,7 +50,9 @@ sleep 3
 proto="$(echo $1 | grep :// | sed -e's,^\(.*://\).*,\1,g')"
 
 
-node template.js --init-template=init-template.js --output=init-template-final.js
+node template.js --init-template=init-template.js --output=$2
+
+echo "console.log('JALANGI_FINAL_COOKIE: ' + document.cookie);" > end-inject.js
 
 #if [ $# -eq 2  ]; then
 #  node har $1 init-template-final.js $2
@@ -58,11 +60,11 @@ node template.js --init-template=init-template.js --output=init-template-final.j
 echo "$(date +%s.%N)" > $cache_folder/begin
 
 if [ "$proto" != "" ]; then 
-   node har $1 $2 $5 > $outfile
+   node har --url $1 --start-inject-js $2 --end-inject-js end-inject.js --proxy-address $5 > $outfile
 	#./har-analyze.sh $1 8182 >  $3
 	#node har $1 $2 8182 > out #| tee -a out
 else
-   node har https://$1 $2 $5 > $outfile
+   node har --url https://$1 --start-inject-js $2 --end-inject-js end-inject.js --proxy-address $5 > $outfile
 	#./har-analyze.sh https://$1 8182 > $3
 	#node har https://$1 $2 8182 > out # | tee -a out
 #./har.sh $1 8181

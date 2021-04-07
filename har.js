@@ -6,17 +6,19 @@ const jsonfile = require('jsonfile');
 const {URL} = require('url');
 const url2 = require('url');
 const path = require('path');
+const argparse = require('argparse');
 const CRED = {
   id: "gogo9th@hanmail.net",
   password: "rkskekfk"
 }
 
-const envArgs = {
-  isChromeHeadFull: String(process.env.HAR_CHROME_HEADFULL).trim() === '1'
-};
+//const envArgs = {
+//  isChromeHeadFull: String(process.env.HAR_CHROME_HEADFULL).trim() === '1'
+//};
 
 /* !!! Always # sign in the front !!! */
 var INPUT_TAG_ID = {
+  page_url: '',
   login_textbox: '#email_inp',
   password_textbox: '#pass_inp',
   login_button: '#submit_login'
@@ -42,23 +44,66 @@ function ValidURL(str) {
 
 var args = process.argv.slice(2);
 
-var isPastSession = false;
-if (args.length == 9 || args.length == 8) {
-  CRED.id = args[1];
-  CRED.password = args[2];
-  INPUT_TAG_ID.login_textbox = '#' + args[3];
-  INPUT_TAG_ID.password_textbox = '#' + args[4];
-  INPUT_TAG_ID.login_button = '#' + args[5];
-} else if (fs.existsSync(args[0]))
-  isPastSession = true;
+var parser = new argparse.ArgumentParser({
+    addHelp: true,
+    description: "Command-line utility to perform Jalangi2's instrumentation and analysis"
+});
+parser.addArgument(['--headless'], {help: "Run a headless browser (default: false)", action: 'storeTrue'});
+parser.addArgument(['--do-not-close'], {help: "Do not close the browser after a pageload", action: 'storeTrue'});
+parser.addArgument(['--proxy-address'], {help: "e.g., www.example.com:8181, 8181", dest: 'proxy_address'});
+parser.addArgument(['--in-cookie-json'], {help: "input cookie file in the json format", dest: 'in_cookie_json'});
+parser.addArgument(['--out-cookie-json'], {help: "output cookie file in the json format", dest: 'out_cookie_json'});
+parser.addArgument(['--start-inject-js'], {help: "run this JavaScript at the beginning of every new document load (i.e., <head> and <body> tags)", dest: 'start_inject_js'});
+parser.addArgument(['--end-inject-js'], {help: "run this JavaScript at the end of a pageload", dest: 'post_inject_js'});
+parser.addArgument(['--outfile-har'], { help: "HAR output file (default: results.har)", dest:'outfile_har'});
+parser.addArgument(['--outfile-html'], {help: "HTML output file (default: results.html)", dest: 'outfile_html'});
+parser.addArgument(['--outfile-console'], {help: "Console output file", dest: 'outfile_console'});
+parser.addArgument(['--login-password'], {help: "<login URL> <login ID> <login password> <login input textbox's tag ID> <password input textbox's tag ID> <login click button's tag ID>", nargs: 6});
+parser.addArgument(['--url'], {help: "Visiting URL", required: true, dest: 'visit'});
 
-if (args.length != 9 && args.length != 8 && (isPastSession && args.length != 4 && args.length != 3 || !isPastSession && args.length != 3 && args.length != 2)) {
-  console.log("Usage 1: " + "node har.js <Visiting URL> <har outfile> (local proxy port)");
-  console.log("Usage 2: " + "node har.js <Login URL> <Login ID> <Login Password> <Login Textbox Input Tag ID> <Password Textbox Input Tag ID> <Login Button Iput Tag ID> <Visiting URL> <har outfile> (local proxy port)");
-  console.log("Usage 3: " + "node har.js <json-session.cookie> <Visiting URL> <har outfile> (local proxy port)");
-  console.log("Usage 4: " + "node har.js <Visiting URL> <inject JS file path> (local proxy port)");
-  process.exit(0);
+var args = parser.parseArgs();
+
+//console.log(args);
+
+var is_headless = args.headless;
+var do_not_close = args.do_not_close;
+var proxy_address, in_cookie_json, out_cookie_json, start_inject_js, end_inject_js, outfile_har, outfile_html;
+
+var visitURL = args.visit;
+
+var hostname = url2.parse(visitURL).host;
+var pathname = url2.parse(visitURL).pathname;
+
+if (args.proxy_address)
+	proxy_address = (args.proxy_address.includes(':') ? args.proxy_address[0] : '127.0.0.1:' + args.proxy_address)
+
+if (args.login_password)
+{	
+	INPUT_TAG_ID.page_url = '#' + args.login_password[0];
+	CRED.id = args.login_password[1];
+	CRED.password = args.login_password[2];
+	INPUT_TAG_ID.login_textbox = '#' + args.login_password[3];
+	INPUT_TAG_ID.password_textbox = '#' + args.login_password[4];
+	INPUT_TAG_ID.login_button = '#' + args.login_password[5];
+
+	var login_hostname = url2.parse(INPUT_TAG_ID.page_url).host;
+	var login_pathname = url2.parse(INPUT_TAG_ID.page_url).pathname;
 }
+
+var start_inject_js = args.start_inject_js;
+var end_inject_js = args.end_inject_js;
+var outfile_har = (args.outfile_har ? args.outfile_har : 'results.har');
+var outfile_html = (args.outfile_html ? args.outfile_html : 'results.html');
+
+var incookiefile = (args.in_cookie_json ? args.in_cookie_json : null);
+var outcookiefile = (args.out_cookie_json ? args.out_cookie_json : 'cookie.json');
+
+
+//console.log(args);
+//console.log(is_headless);
+//console.log(do_not_close);
+
+
 
 
 var chromeArg = [
@@ -72,49 +117,22 @@ var chromeArg = [
 	'--allow-running-insecure-content'
 ];
 
-//if (!envArgs.isChromeHeadFull) {
+if (is_headless) 
 	chromeArg.push('--headless')
-//}
-//else
-//	chromeArg.push('-auto-open-devtools-for-tabs')
+else
+	chromeArg.push('-auto-open-devtools-for-tabs')
 
-if (args.length == 9)
-  chromeArg.push('--proxy-server=' + (args[8].includes(':') ? args[8] : '127.0.0.1:' + args[8]));
-else if (isPastSession && args.length == 4)
-  chromeArg.push('--proxy-server=' + (args[3].includes(':') ? args[8] : '127.0.0.1:' + args[3]));
-else if (!isPastSession && args.length == 3)
-  chromeArg.push('--proxy-server=' + (args[2].includes(':') ? args[2] : '127.0.0.1:' + args[2]));
-
-
-var visitURL;
-var previsitURL = "";
-var hostname;
-var pathname
-
-
-if (args.length == 9 || args.length == 8) {
-  visitURL = args[6];
-  previsitURL = args[0];
-  hostname = url2.parse(previsitURL).host;
-  pathname = url2.parse(previsitURL).pathname;
-} else if (isPastSession) {
-  visitURL = args[1];
-  hostname = url2.parse(visitURL).host;
-  pathname = url2.parse(visitURL).pathname;
-} else {
-  visitURL = args[0];
-  hostname = url2.parse(visitURL).host;
-  pathname = url2.parse(visitURL).pathname;
-}
+if (proxy_address)
+  chromeArg.push('--proxy-server=' + proxy_address);
 
 
 (async () => {
-  const log_filename = `${(new Date()).getTime()}-${hostname.replace(':', '_')}${pathname !== '/' ? pathname.replace('/', '-') : ''}`;
-  const log_file_path = `logs/${log_filename}.txt`;
+  //const log_filename = `${(new Date()).getTime()}-${hostname.replace(':', '_')}${pathname !== '/' ? pathname.replace('/', '-') : ''}`;
+  //const log_file_path = `logs/${log_filename}.txt`;
   
   async function log(message) {
     console.log(message);
-    console.log(log_file_path);
+    //console.log(log_file_path);
     //await fse.appendFile(log_file_path, `\n${message}`);
   }
   
@@ -201,7 +219,7 @@ if (args.length == 9 || args.length == 8) {
       // headers['Accept-Encoding'] = "gzip";
       // headers['Accept-Encoding'] = "q=0,deflate,sdch";
       // headers['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36';
-      headers['Cookie'] = process.env.COOKIE;
+      // headers['Cookie'] = process.env.COOKIE;
       // console.log("Setting Cookie");
       // console.log(request);
       // console.log(headers);
@@ -226,25 +244,17 @@ if (args.length == 9 || args.length == 8) {
       // referer: 'https://example.com/'
     });
     
-    var har_filename = 'results.har';
-    if (args.length >= 8)
-      har_filename = args[7];
-    else if (isPastSession) {
-      if (args[2].split('.').pop() != 'js')
-        har_filename = args[2];
-    } else {
-      if (args[1].split('.').pop() != 'js')
-        har_filename = args[1];
-    }
-    await har.start({path: har_filename});
+    await har.start({path: outfile_har});
     /* LOGIN FIRST */
     //    await sleep(5000);
     await page._client.send('Network.enable', {
       maxResourceBufferSize: 1024 * 1204 * 100,
       maxTotalBufferSize: 1024 * 1204 * 200,
     })
+
+
     if (args.length == 9 || args.length == 8) {
-      await page.goto(previsitURL, {timeout: 30000000});
+      await page.goto(INPUT_TAG_ID.page_url, {timeout: 30000000});
       await page.waitForSelector(INPUT_TAG_ID.login_textbox);
       await page.waitForSelector(INPUT_TAG_ID.password_textbox);
       await page.waitForSelector(INPUT_TAG_ID.login_button);
@@ -266,8 +276,10 @@ if (args.length == 9 || args.length == 8) {
           }
           console.log('Session (cookie) has been successfully saved')
         })
-    } else if (isPastSession) {
-      const cookiesArr = require('./' + args[0])
+    } 
+		
+	if (in_cookie_json) {
+      const cookiesArr = require('./' + in_cookie_json)
       console.log(cookiesArr)
       if (cookiesArr.length !== 0) {
         for (let cookie of cookiesArr) {
@@ -297,11 +309,9 @@ if (args.length == 9 || args.length == 8) {
 //console.log(response._headers);
 //console.log("Called");
         isPageSaved = true;
-        let filePath;
-        filePath = 'results.html'
         //if (args.length == 9 || args.length == 8)
         //	filePath = args[7] + ".html";
-        //else if (isPastSession)
+        //else if (is_past_session)
         //	filePath = args[2] + ".html";
         //else
         //	filePath = args[1] + ".html";
@@ -310,8 +320,8 @@ if (args.length == 9 || args.length == 8) {
         //cookie["path"] = url2.parse(response.url()).pathname;
         //await page.setCookie(...cookie);
         
-        await fse.outputFile(filePath, await response.buffer());
-        console.log("Saving the page as a file: " + response.url() + " to " + filePath);
+        await fse.outputFile(outfile_html, await response.buffer());
+        console.log("Saving the page as a file: " + response.url() + " to " + outfile_html);
       } else if (((response._headers.status && (response._headers.status === "300" || response._headers.status === "301" || response._headers.status === "302")) || (response._status && response._status == 300)) && !isPageSaved) {
         /* Cascade the cookie to the redirected page,
                 because cache is applied per domain & path */
@@ -322,45 +332,41 @@ if (args.length == 9 || args.length == 8) {
       }
     });
     
-    var inject_filepath = null;
-    if (args.length < 8) {
-      if (isPastSession && args[2].split('.').pop() == 'js')
-        inject_filepath = args[2];
-      if (!isPastSession && args[1].split('.').pop() == 'js')
-        inject_filepath = args[1];
-    }
-    if (inject_filepath) {
+    if (start_inject_js) {
       await page.evaluateOnNewDocument(
         () => {
-console.log("Injected Javascript on new document!!!");
           const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
               if (Array.from(mutation.addedNodes).some(node => node.nodeName === 'html' || node.nodeName === 'BODY')) {
-//console.log("Add Node by eval() 1 !!!!!!!!!!!!!!!!!");
-                eval(init_js_file_contents);
-//console.log("Add Node by eval() 2 !!!!!!!!!!!!!!!!!");
-                init_js_file(); // initialize from template
-//console.log("Add Node by eval() 3 !!!!!!!!!!!!!!!!!");
-                eval('if (typeof PrintAll != "undefined") PrintAll()');
-//console.log("Add Node by eval() 4 !!!!!!!!!!!!!!!!!");
+
+						if (Array.from(mutation.addedNodes).some(node => node.nodeName === 'html'))
+							console.log("========== Inject Javascript on the new HTML:<head> ==========");
+						else
+							console.log("========== Inject Javascript on the new HTML:<body> ==========");
+
+						eval(init_js_file_contents);
+						init_js_file(); // initialize from template
+						eval('if (typeof PrintAll !== "undefined") PrintAll()');
               }
               if (Array.from(mutation.addedNodes).some(node => node.nodeName === 'BODY')) {
                 observer.disconnect();
               }
-              
             }
           })
           observer.observe(document, {childList: true, subtree: true});
         });
-      const injectFile = fs.readFileSync(inject_filepath, 'utf8');
+      const injectFile = fs.readFileSync(start_inject_js, 'utf8');
       await page.evaluateOnNewDocument(injectFile);
-    }
-    
+    } 
     
     await page.goto(visitURL, {timeout: 30000000});
-    
-    const timing = await page.evaluate(() => {
-console.log('JALANGI_FINAL_COOKIE: ' + document.cookie);
+
+	if (end_inject_js)    
+		var injectFile2 = fs.readFileSync(end_inject_js, 'utf8');
+
+    const timing = await page.evaluate((injectFile2) => {
+		console.log("========== Injected Javascript on pageload completion ==========");
+		eval(injectFile2);
       const result = {};
       for (const key of Object.keys(window.performance.timing.__proto__))
         result[key] = window.performance.timing[key];
@@ -389,7 +395,6 @@ console.log('JALANGI_FINAL_COOKIE: ' + document.cookie);
         });
     */
     
-    
     await har.stop();
 
      if (chromeArg.includes('--headless')) {
@@ -397,9 +402,9 @@ console.log('JALANGI_FINAL_COOKIE: ' + document.cookie);
      } else {
        // disable javascript, but leave the browser open
        await page.setJavaScriptEnabled(false);
-await browser.close();
+//await browser.close();
      }
-    fs.readFile(har_filename, function (err, data) {
+    fs.readFile(outfile_har, function (err, data) {
       var json = JSON.parse(data)
       //console.log(json['log']['pages'])
       if (json['log']['pages'].length > 0)
@@ -407,19 +412,17 @@ await browser.close();
       else
         json['log']['pages'].push({pageTimings: loadTime});
       
-      fs.writeFile(har_filename, JSON.stringify(json), function (err, result) {
+      fs.writeFile(outfile_har, JSON.stringify(json), function (err, result) {
         if (err) console.log('error', err);
       })
-      console.log("Saving the HAR file: " + har_filename);
+      console.log("Saving the HAR file: " + outfile_har);
     })
-    
-    
+
   } catch (error) {
     console.error("Error exit... ");
     console.error(error);
     browser.close();
   }
-  
   
 })();
 
