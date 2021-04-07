@@ -27,7 +27,7 @@
  */
 
 var DEBUG = false;true;//false; //true;
-var PRINT_LINE_PERIOD_FACTOR = 0;Infinity;0;Infinity;1;0;1;Infinity;//0;1;//1000; 
+var PRINT_LINE_PERIOD_FACTOR = Infinity;0;Infinity;1;0;1;Infinity;//0;1;//1000; 
 	// 0: do not print line info
 	// 1: print every time, 									
 	// 1000: print every 1000th times
