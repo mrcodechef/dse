@@ -70,7 +70,7 @@ https://www.freecodecamp.org/news/git-ssh-how-to/
 #### Manual Local Setup: Install ExpoSE (to run the SMT solver in Javascript)
     $ cd ~
     $ git clone https://github.com/ExpoSEJS/ExpoSE
-    $ cd expoSE
+    $ cd ExpoSE
     $ nvm use 10.23.0
     $ npm install
     $ sed -i "s| node | $(which node) |g" scripts/play # force ExpoSE to use Node v10.23.0
