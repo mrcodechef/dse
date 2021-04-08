@@ -537,13 +537,13 @@ function PostPageload() {
 		local finish_symbol="$(cat cache$k/symbol)"
 		local finish_value="$(cat cache$k/value)"
 		if [[ "$finish_value" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then				
-			./extract-path.sh out$k  | sed "s/\/cache$k\///g" > "LOG-$finish_symbol-$finish_value-$i".txt
+			./extract-path.sh out$k  | sed -E "s|^\/cache[0-9]+\/|$(pwd)|g" > "LOG-$finish_symbol-$finish_value-$i".txt
 			if [ $i -eq 0 ]; then
 				touch all_symbols.txt
 				echo "$finish_symbol = $finish_value" >> all_symbols.txt
 			fi
 		else
-			./extract-path.sh out$k  | sed "s/\/cache$k\///g" > "LOG-$finish_symbol-$j-$i".txt
+			./extract-path.sh out$k  | sed -E "s|^\/cache[0-9]+\/|$(pwd)|g" > "LOG-$finish_symbol-$j-$i".txt
 			if [ $i -eq 0 ]; then
 				touch all_symbols.txt
 				echo "$finish_symbol = $j = $finish_value" >> all_symbols.txt
