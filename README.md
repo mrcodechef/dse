@@ -9,7 +9,7 @@ Ubuntu 20.04 Desktop or Server
 #### Manual Local Setup: Install Preliminaries
     $ sudo apt update && sudo apt-get install -y protobuf-compiler apache2 apache2-dev ssl-cert libprotobuf-dev \
       xcb-proto xcb libx11-xcb-dev libxcb-present-dev libsdl-pango-dev pkg-config dnsmasq libssl-dev python3-venv \ 
-      python3-pip chromium-browser
+      python3-pip chromium-browser pipx
 
 #### Manual Local Setup: Install Mahimahi  (To simulate web servers)
     $ sudo make-ssl-cert generate-default-snakeoil
@@ -28,6 +28,8 @@ Ubuntu 20.04 Desktop or Server
 #### Manual Local Setup: Install MITM-Proxy (To instrument Javascript resources on the fly)
     $ sudo pip3 install -U pip
     $ pip3 install mitmproxy bs4 jsbeautifier filelock
+    $ pipx mitmproxy
+    $ echo ". ~/.local/pipx/venvs/mitmproxy/bin/activate" >> ~/.bashrc
 
 #### Manual Local Setup: Install Node 10.23.0 & 15.4.0 (to run ExpoSE & Puppeteer with Jalangi)
     $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
