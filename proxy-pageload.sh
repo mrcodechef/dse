@@ -39,7 +39,7 @@ outfile=$3
 mkdir $cache_folder 2> /dev/null
 
 touch $cache_folder/lock-pageload
-
+rm out-mitmdump-$outfile
 PROXY_CACHE_FOLDER_NAME=$cache_folder mitmdump --set block_global=false --ssl-insecure -p $5 -s proxy.py &> out-mitmdump-$outfile & #/dev/null &
 
 mitmdump_pid=$!
