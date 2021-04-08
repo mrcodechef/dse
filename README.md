@@ -27,7 +27,7 @@ Ubuntu 20.04 Desktop or Server
 
 #### Manual Local Setup: Install MITM-Proxy (To instrument Javascript resources on the fly)
     $ sudo pip3 install -U pip
-    $ pip3 install mitmproxy bs4 jsbeautifier
+    $ pip3 install mitmproxy bs4 jsbeautifier filelock
 
 #### Manual Local Setup: Install Node 10.23.0 & 15.4.0 (to run ExpoSE & Puppeteer with Jalangi)
     $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
