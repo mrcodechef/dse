@@ -2,7 +2,7 @@
 
 ## Quick Remote Setup
     $ sshpass -p rkskekfkak ssh -o StrictHostKeyChecking=no  skyer@165.22.176.134
-    $ cd dse/src
+    $ cd dse
     
 #### Manual Local Setup: Platform Requirement
 Ubuntu 20.04 Desktop or Server
