@@ -94,7 +94,7 @@ Place the top-level mahimahi database folder in the `dse` directory
     $ ./horcrux-mahimahi-final.sh <start index for websites> <end index for websites>
     
 #### Example
-    $ ./horcrux-mahimahi.sh 10 20   # www.facebook.com
+    $ ./horcrux-mahimahi.sh 96 97   # www.facebook.com
 
 #### Results
 The `path-results` folder contains a sub-folder for each analyzed webpage, such as `www.cnet.com`. For each webpage's folder, it contains as many `symbol_assignment_*.js` JavaScript files as the number of execution paths discovered by concolic execution. Each Javascript file is automatically generated in such a way that once it is executed at the beginning of the page load, it will initialize the browser's client-side values (e.g., `navigator.userAgent`, `screen.width`) such that it will its unique execution path. 
