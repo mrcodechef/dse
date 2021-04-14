@@ -813,7 +813,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 		#node har "$finalURL" init-template-final.js out$i cache$i $MITMPROXY_PORT "reuseCache" > out
 		#sleep 1
 	done
-	sleep 1
+	sleep 3
 	START=$(date +%s.%N)
 	prev_instances=$((CPU_COUNT + 1))
 	while true; do
