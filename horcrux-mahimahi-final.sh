@@ -721,7 +721,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 	isLoad=$(cat out0 | grep "Load Time:" | wc -l)
 	if [ $isLoad -ne 1 ]; then
 		echo "[SKIP] $finalURL : Javascript instrumentation, skipping..."
-		continue
+		:
 	fi
 		#isFail=1
 #		break
@@ -844,7 +844,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 	done
 	if [ $isFail -eq 1 ]; then
 		echo "[SKIP] $finalURL: Pageload failed, skipping..."
-		continue
+		:
 	fi
 	avg_loadtime="$(echo "scale=1; $total_loadtime / $CPU_COUNT;" | bc)"
 	total_test_time=$(echo "scale=0; $avg_loadtime * $symbol_instance_count / $CPU_COUNT / 60" | bc)
@@ -852,7 +852,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 	#echo "[WEBSITE EXPECTED MAXIMUM ANALYSIS TIME]: $finalURL --> $(echo "scale = 0; $total_test_time" | bc) minutes (URLs: $url_count)"
 	if [[ $(echo "$total_test_time > $TIME_LIMIT" | bc -l) -eq 1 ]]; then
 		echo "[SKIP] $finalURL..." # : $total_test_time minutes is too long, skipping..."
-		continue
+		:
 	fi	
 
 	
