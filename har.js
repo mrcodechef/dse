@@ -253,7 +253,7 @@ if (proxy_address)
     })
 
 
-    if (args.length == 9 || args.length == 8) {
+    if (args.login_password) {
       await page.goto(INPUT_TAG_ID.page_url, {timeout: 180000});
       await page.waitForSelector(INPUT_TAG_ID.login_textbox);
       await page.waitForSelector(INPUT_TAG_ID.password_textbox);
