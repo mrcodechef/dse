@@ -359,7 +359,7 @@ if (proxy_address)
       await page.evaluateOnNewDocument(injectFile);
     } 
     
-    await page.goto(visitURL, {timeout: 30000000});
+    await page.goto(visitURL, {timeout: 180000});
 
 	if (end_inject_js)    
 		var injectFile2 = fs.readFileSync(end_inject_js, 'utf8');
