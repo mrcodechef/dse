@@ -653,7 +653,7 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 
 	
 	cd $CHROME_RESULT_DIR
-	rm -f $CHROME_RESULT_DIR/LOG-*.txt $CHROME_RESULT_DIR/all_symbols.txt $CHROME_RESULT_DIR/final_symbols.txt out*
+	rm -f $CHROME_RESULT_DIR/LOG-*.txt $CHROME_RESULT_DIR/Log-*.txt $CHROME_RESULT_DIR/all_symbols.txt $CHROME_RESULT_DIR/final_symbols.txt out*
 	#mkdir $temp 2> /dev/null
 	fuser -k $NGHTTP2_PORT/tcp
 	killall mitmdump 2> /dev/null
