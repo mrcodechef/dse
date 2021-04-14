@@ -836,7 +836,6 @@ for mahimahi_path in ${mahimahi_paths[@]}; do
 		loadtime="$(cat out$i | grep "\- Load Time:" | awk '{print $4}')" 
 		if [ "$loadtime" == ""  ]; then
 			isFail=1
-			break
 		fi
 		echo "CPU[$i] Loadtime: $loadtime seconds"
 		total="$(echo "$loadtime + $total_loadtime" | bc)"
